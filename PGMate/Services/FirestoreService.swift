@@ -6,9 +6,8 @@ class FirestoreService {
     private let db = Firestore.firestore()
 
     private init() {
-        let settings = FirestoreSettings()
-        settings.cacheSettings = PersistentCacheSettings()
-        db.settings = settings
+        // Offline persistence is enabled by default in Firebase iOS SDK 10+
+        // No settings configuration needed
     }
 
     private func propertyRef(_ propertyId: String) -> DocumentReference {
