@@ -57,7 +57,15 @@ class FirestoreService {
     }
 
     func saveRoom(_ room: Room, propertyId: String) async throws {
-        try propertyRef(propertyId).collection("rooms").document(room.id).setData(from: room)
+        try await propertyRef(propertyId).collection("rooms").document(room.id).setData([
+            "id": room.id,
+            "roomNumber": room.roomNumber,
+            "floor": room.floor,
+            "type": room.type.rawValue,
+            "monthlyRent": room.monthlyRent,
+            "status": room.status.rawValue,
+            "amenities": room.amenities
+        ])
     }
 
     func deleteRoom(id: String, propertyId: String) async throws {
