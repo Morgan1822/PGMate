@@ -248,7 +248,27 @@ class FirestoreService {
     }
 
     func saveRentRecord(_ record: RentRecord, propertyId: String) async throws {
-        try propertyRef(propertyId).collection("rentRecords").document(record.id).setData(from: record)
+        var data: [String: Any] = [
+            "id": record.id,
+            "tenantId": record.tenantId,
+            "tenantName": record.tenantName,
+            "roomNumber": record.roomNumber,
+            "month": record.month,
+            "year": record.year,
+            "amount": record.amount,
+            "dueDate": Timestamp(date: record.dueDate),
+            "status": record.status.rawValue,
+            "paymentMethod": record.paymentMethod.rawValue
+        ]
+        if let paidDate = record.paidDate {
+            data["paidDate"] = Timestamp(date: paidDate)
+        }
+        if let upiId = record.upiTransactionId {
+            data["upiTransactionId"] = upiId
+        }
+        try await propertyRef(propertyId)
+            .collection("rentRecords")
+            .document(record.id).setData(data)
     }
 
     // MARK: - Maintenance
