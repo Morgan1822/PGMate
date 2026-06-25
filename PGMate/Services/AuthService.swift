@@ -13,8 +13,10 @@ class AuthService {
     var propertyName: String = ""
     var errorMessage: String?
 
+    private var authStateHandle: AuthStateDidChangeListenerHandle?
+
     private init() {
-        Auth.auth().addStateDidChangeListener { [weak self] _, user in
+        authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor in
                 if let user = user {
                     self?.currentUserId = user.uid

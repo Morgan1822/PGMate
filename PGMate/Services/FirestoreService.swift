@@ -7,7 +7,7 @@ class FirestoreService {
 
     private init() {
         let settings = FirestoreSettings()
-        settings.isPersistenceEnabled = true
+        settings.cacheSettings = PersistentCacheSettings()
         db.settings = settings
     }
 
