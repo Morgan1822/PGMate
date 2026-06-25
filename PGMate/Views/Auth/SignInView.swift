@@ -15,12 +15,15 @@ struct SignInView: View {
                 VStack(spacing: 32) {
                     // MARK: Logo
                     VStack(spacing: 12) {
-                        Image("AppIcon")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90, height: 90)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.primaryIndigo)
+                                .frame(width: 90, height: 90)
+                            Image(systemName: "building.2.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.accentGold)
+                        }
+                        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
 
                         Text("PGMate")
                             .font(.title)

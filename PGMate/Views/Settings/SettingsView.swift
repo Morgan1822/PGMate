@@ -1,10 +1,19 @@
 import SwiftUI
 
 struct SettingsView: View {
+    private let auth = AuthService.shared
+
     var body: some View {
         NavigationStack {
-            Text("Settings")
-                .navigationTitle("Settings")
+            List {
+                Section {
+                    Button("Sign Out") {
+                        try? auth.signOut()
+                    }
+                    .foregroundColor(.red)
+                }
+            }
+            .navigationTitle("Settings")
         }
     }
 }
