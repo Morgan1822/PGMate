@@ -19,12 +19,28 @@ struct PGMateApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     init() {
-        FirebaseApp.configure()
+        configureFirebase()
     }
 
     var body: some Scene {
         WindowGroup {
             RootView()
         }
+    }
+
+    private func configureFirebase() {
+        #if DEBUG
+        let plistName = "GoogleService-Info-Dev"
+        #else
+        let plistName = "GoogleService-Info-Prod"
+        #endif
+
+        guard let filePath = Bundle.main.path(forResource: plistName, ofType: "plist"),
+              let options = FirebaseOptions(contentsOfFile: filePath) else {
+            fatalError("Could not load \(plistName).plist from bundle.")
+        }
+
+        FirebaseApp.configure(options: options)
+        print("Firebase configured with \(plistName)")
     }
 }
