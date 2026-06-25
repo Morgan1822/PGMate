@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct Room: Identifiable, Codable {
+struct Room: Identifiable, Codable, Hashable {
     var id: String
     var propertyId: String
     var roomNumber: String

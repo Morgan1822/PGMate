@@ -1,5 +1,6 @@
 import Foundation
 import FirebaseFirestore
+import FirebaseStorage
 
 class FirestoreService {
     static let shared = FirestoreService()
@@ -140,7 +141,41 @@ class FirestoreService {
     }
 
     func saveTenant(_ tenant: Tenant, propertyId: String) async throws {
-        try propertyRef(propertyId).collection("tenants").document(tenant.id).setData(from: tenant)
+        var data: [String: Any] = [
+            "id": tenant.id,
+            "roomId": tenant.roomId,
+            "roomNumber": tenant.roomNumber,
+            "name": tenant.name,
+            "phone": tenant.phone,
+            "email": tenant.email,
+            "idProofType": tenant.idProofType.rawValue,
+            "checkInDate": Timestamp(date: tenant.checkInDate),
+            "depositAmount": tenant.depositAmount,
+            "monthlyRent": tenant.monthlyRent,
+            "status": tenant.status.rawValue,
+            "emergencyContactName": tenant.emergencyContactName,
+            "emergencyContactPhone": tenant.emergencyContactPhone
+        ]
+        if let photoURL = tenant.photoURL {
+            data["photoURL"] = photoURL
+        }
+        if let checkOutDate = tenant.checkOutDate {
+            data["checkOutDate"] = Timestamp(date: checkOutDate)
+        }
+        try await propertyRef(propertyId)
+            .collection("tenants")
+            .document(tenant.id).setData(data)
+    }
+
+    func uploadTenantPhoto(photoData: Data, tenantId: String, propertyId: String) async throws -> String {
+        let storage = Storage.storage()
+        let ref = storage.reference()
+            .child("tenants/\(propertyId)/\(tenantId).jpg")
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        _ = try await ref.putDataAsync(photoData, metadata: metadata)
+        let url = try await ref.downloadURL()
+        return url.absoluteString
     }
 
     func deleteTenant(id: String, propertyId: String) async throws {
