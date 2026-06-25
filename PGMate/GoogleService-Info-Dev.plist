@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>503493787020-pr9fn806k8bvd4jj6rn9ggqtppv5k084.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.503493787020-pr9fn806k8bvd4jj6rn9ggqtppv5k084</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCwrIj93KJ5uk1jMH7umhVMOW0qvJL5OKw</string>
+	<key>GCM_SENDER_ID</key>
+	<string>503493787020</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.vinothv.PGMate</string>
+	<key>PROJECT_ID</key>
+	<string>pgmate-597f2</string>
+	<key>STORAGE_BUCKET</key>
+	<string>pgmate-597f2.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:503493787020:ios:79a207d32556fa1db1eaa9</string>
+</dict>
+</plist>
