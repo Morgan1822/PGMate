@@ -134,7 +134,14 @@ class DashboardViewModel {
     // MARK: - Load
 
     func load() async {
-        guard let propertyId = auth.currentPropertyId else { return }
+        // Wait for auth to complete if propertyId isn't available yet
+        if auth.currentPropertyId == nil {
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        }
+
+        guard let propertyId = auth.currentPropertyId else {
+            return
+        }
         isLoading = true
         defer { isLoading = false }
 

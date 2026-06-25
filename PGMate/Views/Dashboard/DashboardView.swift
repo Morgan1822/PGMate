@@ -187,6 +187,9 @@ struct DashboardView: View {
             .task {
                 await vm.load()
             }
+            .onChange(of: AuthService.shared.currentPropertyId) {
+                Task { await vm.load() }
+            }
             .refreshable {
                 await vm.load()
             }
