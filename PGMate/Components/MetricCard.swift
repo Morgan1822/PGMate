@@ -15,6 +15,8 @@ struct MetricCard: View {
                 .font(.title3)
                 .fontWeight(.bold)
                 .foregroundColor(valueColor)
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
             if let subtitle = subtitle {
                 Text(subtitle)
                     .font(.caption2)
