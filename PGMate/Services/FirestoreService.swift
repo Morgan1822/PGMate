@@ -366,6 +366,20 @@ class FirestoreService {
     }
 
 
+    // MARK: - Account Deletion
+
+    func deleteAllOwnerData(propertyId: String, uid: String) async throws {
+        let propertyRef = db.collection("properties").document(propertyId)
+        for collection in ["rooms", "tenants", "rentRecords", "maintenance"] {
+            let snap = try await propertyRef.collection(collection).getDocuments()
+            for doc in snap.documents {
+                try await doc.reference.delete()
+            }
+        }
+        try await propertyRef.delete()
+        try await db.collection("owners").document(uid).delete()
+    }
+
     // MARK: - Property
 
     func updateProperty(propertyId: String, name: String, address: String, totalRooms: Int) async throws {
