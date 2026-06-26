@@ -365,65 +365,6 @@ class FirestoreService {
         try await propertyRef(propertyId).collection("maintenance").document(id).delete()
     }
 
-    // MARK: - Reports (period queries)
-
-    func fetchRentRecordsForPeriod(propertyId: String, from: Date, to: Date) async throws -> [RentRecord] {
-        let snap = try await propertyRef(propertyId).collection("rentRecords")
-            .whereField("paidDate", isGreaterThanOrEqualTo: Timestamp(date: from))
-            .whereField("paidDate", isLessThanOrEqualTo: Timestamp(date: to))
-            .getDocuments()
-        return decodeRentRecords(snap.documents, propertyId: propertyId)
-    }
-
-    func fetchDoneTasksForPeriod(propertyId: String, from: Date, to: Date) async throws -> [MaintenanceTask] {
-        let snap = try await propertyRef(propertyId).collection("maintenance")
-            .whereField("status", isEqualTo: "done")
-            .whereField("resolvedAt", isGreaterThanOrEqualTo: Timestamp(date: from))
-            .whereField("resolvedAt", isLessThanOrEqualTo: Timestamp(date: to))
-            .getDocuments()
-
-        return snap.documents.compactMap { doc in
-            let data = doc.data()
-            let id = data["id"] as? String ?? doc.documentID
-            guard let title = data["title"] as? String else { return nil }
-
-            let description = data["description"] as? String ?? ""
-
-            let roomNumber: String
-            if let rn = data["roomNumber"] as? String {
-                roomNumber = rn
-            } else if let rn = data["roomNumber"] as? Int {
-                roomNumber = String(rn)
-            } else {
-                roomNumber = ""
-            }
-
-            let priorityRaw = data["priority"] as? String ?? "medium"
-            let priority = MaintenanceTask.Priority(rawValue: priorityRaw) ?? .medium
-
-            let estimatedCost = data["estimatedCost"] as? Double
-                ?? Double(data["estimatedCost"] as? Int ?? 0)
-
-            let createdAt = (data["createdAt"] as? Timestamp)?.dateValue()
-                ?? (data["scheduledDate"] as? Timestamp)?.dateValue()
-                ?? Date()
-            let resolvedAt = (data["resolvedAt"] as? Timestamp)?.dateValue()
-                ?? (data["completedDate"] as? Timestamp)?.dateValue()
-
-            return MaintenanceTask(
-                id: id,
-                propertyId: propertyId,
-                roomNumber: roomNumber,
-                title: title,
-                description: description,
-                status: .done,
-                priority: priority,
-                estimatedCost: estimatedCost,
-                createdAt: createdAt,
-                resolvedAt: resolvedAt
-            )
-        }
-    }
 
     // MARK: - Property
 

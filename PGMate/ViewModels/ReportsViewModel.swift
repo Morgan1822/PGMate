@@ -30,27 +30,23 @@ class ReportsViewModel {
             let calendar = Calendar.current
             let now = Date()
 
-            // Build 6-month windows starting from 5 months ago
-            guard let sixMonthsAgo = calendar.date(byAdding: .month, value: -5, to: now) else { return }
-            let periodStart = calendar.startOfMonth(sixMonthsAgo)
-            let periodEnd = calendar.endOfMonth(now)
+            guard let sixMonthsAgo = calendar.date(byAdding: .month, value: -6, to: now) else { return }
 
-            // Fetch all paid rent records for the entire 6-month window
-            let rentRecords = try await FirestoreService.shared.fetchRentRecordsForPeriod(
-                propertyId: propertyId,
-                from: periodStart,
-                to: periodEnd
-            )
-
-            // Fetch all done maintenance tasks for the 6-month window
-            let doneTasks = try await FirestoreService.shared.fetchDoneTasksForPeriod(
-                propertyId: propertyId,
-                from: periodStart,
-                to: periodEnd
-            )
-
-            // Fetch all rent records (all statuses) for the period to compute pending
+            // Fetch all records — filter in Swift, no composite indexes needed
             let allRentRecords = try await FirestoreService.shared.fetchAllRentRecords(propertyId: propertyId)
+            let allTasks = try await FirestoreService.shared.fetchMaintenanceTasks(propertyId: propertyId)
+
+            // Filter to records within the 6-month window
+            let rentRecords = allRentRecords.filter {
+                $0.status == .paid &&
+                $0.paidDate != nil &&
+                $0.paidDate! >= sixMonthsAgo
+            }
+            let doneTasks = allTasks.filter {
+                $0.status == .done &&
+                $0.resolvedAt != nil &&
+                $0.resolvedAt! >= sixMonthsAgo
+            }
 
             // Group into 6 monthly buckets
             var reports: [MonthlyReport] = []
