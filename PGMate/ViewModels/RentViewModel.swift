@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseCrashlytics
 
 @Observable
 class RentViewModel {
@@ -59,6 +60,7 @@ class RentViewModel {
                 .sorted { $0.tenantName < $1.tenantName }
             propertyName = auth.propertyName
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             errorMessage = error.localizedDescription
         }
     }

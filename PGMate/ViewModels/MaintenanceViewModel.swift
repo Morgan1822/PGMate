@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseCrashlytics
 
 @Observable
 class MaintenanceViewModel {
@@ -29,6 +30,7 @@ class MaintenanceViewModel {
         do {
             tasks = try await firestore.fetchMaintenanceTasks(propertyId: propertyId)
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             errorMessage = error.localizedDescription
         }
     }
@@ -47,6 +49,7 @@ class MaintenanceViewModel {
                 tasks[idx].resolvedAt = resolvedAt
             }
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             errorMessage = error.localizedDescription
         }
     }
@@ -56,6 +59,7 @@ class MaintenanceViewModel {
             try await firestore.saveMaintenanceTask(task, propertyId: propertyId)
             await fetchTasks(propertyId: propertyId)
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             errorMessage = error.localizedDescription
         }
     }
@@ -65,6 +69,7 @@ class MaintenanceViewModel {
             try await firestore.deleteMaintenanceTask(id: task.id, propertyId: propertyId)
             tasks.removeAll { $0.id == task.id }
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             errorMessage = error.localizedDescription
         }
     }

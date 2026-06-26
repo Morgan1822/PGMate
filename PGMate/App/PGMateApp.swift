@@ -9,6 +9,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         #if DEBUG
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(false)
+        #else
+        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
         #endif
         return true
     }

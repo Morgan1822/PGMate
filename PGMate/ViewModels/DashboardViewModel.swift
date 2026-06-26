@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseCrashlytics
 
 @Observable
 class DashboardViewModel {
@@ -161,6 +162,7 @@ class DashboardViewModel {
                 self.maintenanceTasks = m
             }
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             await MainActor.run {
                 self.errorMessage = error.localizedDescription
             }

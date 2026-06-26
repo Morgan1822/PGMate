@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseCrashlytics
 
 struct MonthlyReport: Identifiable {
     let id: String          // "2026-05" format
@@ -94,6 +95,7 @@ class ReportsViewModel {
                 self.isLoading = false
             }
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             await MainActor.run {
                 self.errorMessage = error.localizedDescription
                 self.isLoading = false

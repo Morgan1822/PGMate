@@ -1,6 +1,7 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseStorage
+import FirebaseCrashlytics
 
 class FirestoreService {
     static let shared = FirestoreService()
@@ -18,6 +19,7 @@ class FirestoreService {
     // MARK: - Rooms
 
     func fetchRooms(propertyId: String) async throws -> [Room] {
+        Crashlytics.crashlytics().setCustomValue(propertyId, forKey: "propertyId")
         let snap = try await propertyRef(propertyId).collection("rooms").getDocuments()
 
         return snap.documents.compactMap { doc in
@@ -81,6 +83,7 @@ class FirestoreService {
     // MARK: - Tenants
 
     func fetchTenants(propertyId: String) async throws -> [Tenant] {
+        Crashlytics.crashlytics().setCustomValue(propertyId, forKey: "propertyId")
         let snap = try await propertyRef(propertyId).collection("tenants").getDocuments()
 
         return snap.documents.compactMap { doc in
@@ -193,6 +196,7 @@ class FirestoreService {
     }
 
     func fetchAllRentRecords(propertyId: String) async throws -> [RentRecord] {
+        Crashlytics.crashlytics().setCustomValue(propertyId, forKey: "propertyId")
         let snap = try await propertyRef(propertyId).collection("rentRecords").getDocuments()
         return decodeRentRecords(snap.documents, propertyId: propertyId)
     }
@@ -274,6 +278,7 @@ class FirestoreService {
     // MARK: - Maintenance
 
     func fetchMaintenanceTasks(propertyId: String) async throws -> [MaintenanceTask] {
+        Crashlytics.crashlytics().setCustomValue(propertyId, forKey: "propertyId")
         let snap = try await propertyRef(propertyId).collection("maintenance").getDocuments()
 
         return snap.documents.compactMap { doc in

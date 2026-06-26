@@ -1,6 +1,7 @@
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseCrashlytics
 
 @Observable
 class AuthService {
@@ -21,6 +22,7 @@ class AuthService {
                 if let user = user {
                     self?.currentUserId = user.uid
                     self?.isAuthenticated = true
+                    Crashlytics.crashlytics().setUserID(user.uid)
                     await self?.fetchOwnerProfile(userId: user.uid)
                 } else {
                     self?.isAuthenticated = false
@@ -28,6 +30,7 @@ class AuthService {
                     self?.currentPropertyId = nil
                     self?.ownerName = ""
                     self?.propertyName = ""
+                    Crashlytics.crashlytics().setUserID("")
                 }
             }
         }

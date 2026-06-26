@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseCrashlytics
 
 @Observable
 class TenantViewModel {
@@ -31,6 +32,7 @@ class TenantViewModel {
                 .fetchTenants(propertyId: propertyId)
                 .sorted { $0.name < $1.name }
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             errorMessage = error.localizedDescription
         }
     }

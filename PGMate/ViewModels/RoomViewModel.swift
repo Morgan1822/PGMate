@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseCrashlytics
 
 @Observable
 class RoomViewModel {
@@ -39,6 +40,7 @@ class RoomViewModel {
                 .fetchRooms(propertyId: propertyId)
                 .sorted { $0.roomNumber < $1.roomNumber }
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             errorMessage = error.localizedDescription
         }
     }
@@ -50,6 +52,7 @@ class RoomViewModel {
                 id: room.id, propertyId: propertyId, status: status)
             await load()
         } catch {
+            Crashlytics.crashlytics().record(error: error)
             errorMessage = error.localizedDescription
         }
     }
