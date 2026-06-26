@@ -15,22 +15,26 @@ struct AddMaintenanceView: View {
             Form {
                 Section("Task Info") {
                     TextField("Title (required)", text: $title)
+                        .foregroundStyle(Color.textPrimary)
 
                     ZStack(alignment: .topLeading) {
                         if description.isEmpty {
                             Text("Description (optional)")
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(Color.textSecondary)
                                 .font(.body)
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
                         }
                         TextEditor(text: $description)
+                            .foregroundStyle(Color.textPrimary)
                             .frame(minHeight: 72)
                     }
 
                     TextField("Room Number (optional)", text: $roomNumber)
+                        .foregroundStyle(Color.textPrimary)
                         .keyboardType(.numberPad)
                 }
+                .listRowBackground(Color.surface)
 
                 Section("Priority") {
                     Picker("Priority", selection: $priority) {
@@ -39,27 +43,37 @@ struct AddMaintenanceView: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                    .tint(Color.gold)
                 }
+                .listRowBackground(Color.surface)
 
                 Section("Estimated Cost") {
                     HStack {
                         Text("₹")
-                            .foregroundColor(.secondary)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.gold)
                         TextField("0", text: $estimatedCost)
+                            .foregroundStyle(Color.textPrimary)
                             .keyboardType(.numberPad)
                     }
                 }
+                .listRowBackground(Color.surface)
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.bgSecondary.ignoresSafeArea())
+            .tint(Color.gold)
             .navigationTitle("Add Task")
             .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
+                        .foregroundStyle(Color.gold)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add Task") { saveTask() }
                         .fontWeight(.semibold)
+                        .foregroundStyle(canSave && !isLoading ? Color.gold : Color.textSecondary)
                         .disabled(!canSave || isLoading)
                 }
             }

@@ -4,6 +4,7 @@ struct MaintenanceBoardView: View {
     @State private var vm = MaintenanceViewModel()
     @State private var selectedTask: MaintenanceTask?
     @State private var showAddTask = false
+    @State private var expandedSections: Set<MaintenanceTask.TaskStatus> = Set(MaintenanceTask.TaskStatus.allCases)
 
     var body: some View {
         NavigationStack {
@@ -14,25 +15,33 @@ struct MaintenanceBoardView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(Color.bgPrimary.ignoresSafeArea())
                 } else if vm.tasks.isEmpty {
-                    EmptyStateView(
-                        icon: "wrench.and.screwdriver",
-                        title: "No Maintenance Tasks",
-                        subtitle: "Tap + to add your first task")
+                    MaintenanceEmptyStateView()
                 } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(alignment: .top, spacing: 16) {
-                            KanbanColumnView(
+                    ScrollView(.vertical, showsIndicators: true) {
+                        VStack(spacing: 16) {
+                            MaintenanceSectionView(
                                 status: .open,
                                 tasks: vm.openTasks,
-                                onTap: { selectedTask = $0 })
-                            KanbanColumnView(
+                                isExpanded: isExpanded(.open),
+                                onToggle: { toggleSection(.open) },
+                                onTapTask: { selectedTask = $0 }
+                            )
+
+                            MaintenanceSectionView(
                                 status: .inProgress,
                                 tasks: vm.inProgressTasks,
-                                onTap: { selectedTask = $0 })
-                            KanbanColumnView(
+                                isExpanded: isExpanded(.inProgress),
+                                onToggle: { toggleSection(.inProgress) },
+                                onTapTask: { selectedTask = $0 }
+                            )
+
+                            MaintenanceSectionView(
                                 status: .done,
                                 tasks: vm.doneTasks,
-                                onTap: { selectedTask = $0 })
+                                isExpanded: isExpanded(.done),
+                                onToggle: { toggleSection(.done) },
+                                onTapTask: { selectedTask = $0 }
+                            )
                         }
                         .padding(16)
                     }
@@ -44,23 +53,34 @@ struct MaintenanceBoardView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 12) {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 8) {
+                        Text("Maintenance")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.textOnNavy)
+
                         if vm.openTasks.count > 0 {
-                            Text("\(vm.openTasks.count) open")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
+                            Text("\(vm.openTasks.count)")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.textOnNavy)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 3)
                                 .background(Color.negative)
                                 .clipShape(Capsule())
                         }
-                        Button(action: { showAddTask = true }) {
-                            Image(systemName: "plus")
-                                .fontWeight(.semibold)
-                        }
                     }
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { showAddTask = true }) {
+                        Image(systemName: "plus")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.gold)
+                    }
+                    .accessibilityLabel("Add task")
                 }
             }
             .sheet(item: $selectedTask) { task in
@@ -86,61 +106,80 @@ struct MaintenanceBoardView: View {
             }
         }
     }
+
+    private func isExpanded(_ status: MaintenanceTask.TaskStatus) -> Bool {
+        expandedSections.contains(status)
+    }
+
+    private func toggleSection(_ status: MaintenanceTask.TaskStatus) {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            if expandedSections.contains(status) {
+                expandedSections.remove(status)
+            } else {
+                expandedSections.insert(status)
+            }
+        }
+    }
 }
 
-// MARK: - KanbanColumnView
+// MARK: - MaintenanceSectionView
 
-struct KanbanColumnView: View {
+struct MaintenanceSectionView: View {
     let status: MaintenanceTask.TaskStatus
     let tasks: [MaintenanceTask]
-    let onTap: (MaintenanceTask) -> Void
+    let isExpanded: Bool
+    let onToggle: () -> Void
+    let onTapTask: (MaintenanceTask) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Column header
-            HStack {
-                Text(status.displayName)
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.textPrimary)
-                Spacer()
-                Text("\(tasks.count)")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(tasks.isEmpty ? Color.textSecondary : Color.textOnNavy)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(tasks.isEmpty ? Color.surfaceElevated : status.color)
-                    .clipShape(Capsule())
-            }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
+        VStack(alignment: .leading, spacing: 12) {
+            Button(action: onToggle) {
+                HStack(spacing: 10) {
+                    Text(status.displayName)
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.textPrimary)
 
-            // Task cards
-            VStack(spacing: 10) {
-                if tasks.isEmpty {
-                    Text("No tasks")
+                    Text("\(tasks.count)")
                         .font(.caption)
-                        .foregroundStyle(Color.textTertiary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 20)
-                } else {
-                    ForEach(tasks) { task in
-                        TaskCardView(task: task)
-                            .onTapGesture { onTap(task) }
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.textOnNavy)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4)
+                        .background(status.themeColor)
+                        .clipShape(Capsule())
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.textSecondary)
+                        .rotationEffect(.degrees(isExpanded ? 0 : -90))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(isExpanded ? "Collapse" : "Expand") \(status.displayName)")
+
+            if isExpanded {
+                VStack(spacing: 12) {
+                    if tasks.isEmpty {
+                        Text("No tasks")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 12)
+                    } else {
+                        ForEach(tasks) { task in
+                            TaskCardView(task: task)
+                                .onTapGesture { onTapTask(task) }
+                        }
                     }
                 }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
-            .padding(.horizontal, 10)
-            .padding(.bottom, 12)
         }
-        .frame(width: 260)
-        .background(status.color.opacity(0.07))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(status.color.opacity(0.22), lineWidth: 1)
-        )
     }
 }
 
@@ -150,58 +189,89 @@ struct TaskCardView: View {
     let task: MaintenanceTask
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Title
-            Text(task.title)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.textPrimary)
-                .lineLimit(2)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(task.title)
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.textPrimary)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Room chip
-            if !task.roomNumber.isEmpty {
-                Text("Room \(task.roomNumber)")
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .foregroundStyle(Color.navyPrimary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.navyPrimary.opacity(0.1))
-                    .clipShape(Capsule())
-            }
-
-            HStack {
-                // Priority
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(task.priority.color)
-                        .frame(width: 6, height: 6)
-                    Text(task.priority.displayName)
-                        .font(.caption2)
-                        .foregroundStyle(Color.textSecondary)
+                    if !task.roomNumber.isEmpty {
+                        Text("Room \(task.roomNumber)")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.textOnNavy)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 4)
+                            .background(Color.navyLight)
+                            .clipShape(Capsule())
+                    }
                 }
 
-                Spacer()
+                StatusBadge(text: task.status.displayName, color: task.status.themeColor)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
 
-                // Cost
+            HStack(spacing: 14) {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(task.priority.themeColor)
+                        .frame(width: 8, height: 8)
+
+                    Text(task.priority.displayName)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(task.priority.themeColor)
+                }
+
                 if task.estimatedCost > 0 {
                     Text(formatINR(task.estimatedCost))
-                        .font(.caption2)
+                        .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundStyle(Color.textPrimary)
                 }
-            }
 
-            // Time ago
-            Text(task.createdAt.timeAgoString)
-                .font(.caption2)
-                .foregroundStyle(Color.textTertiary)
+                Spacer(minLength: 8)
+
+                Text(task.createdAt.timeAgoString)
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+            }
         }
-        .padding(12)
+        .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .shadow(color: Color.black.opacity(0.07), radius: 8, x: 0, y: 3)
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+// MARK: - MaintenanceEmptyStateView
+
+struct MaintenanceEmptyStateView: View {
+    var body: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "wrench.and.screwdriver")
+                .font(.system(size: 52, weight: .regular))
+                .foregroundStyle(Color.textSecondary.opacity(0.55))
+
+            Text("No maintenance tasks")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.textSecondary)
+
+            Text("Tap + to add a task")
+                .font(.subheadline)
+                .foregroundStyle(Color.textSecondary)
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(32)
+        .background(Color.bgPrimary.ignoresSafeArea())
     }
 }
 
@@ -220,33 +290,39 @@ struct TaskDetailSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                // Details
                 Section("Task Details") {
-                    LabeledContent("Title", value: task.title)
+                    DetailRow(label: "Title", value: task.title)
                     if !task.roomNumber.isEmpty {
-                        LabeledContent("Room", value: task.roomNumber)
+                        DetailRow(label: "Room", value: task.roomNumber)
                     }
-                    LabeledContent("Priority", value: task.priority.displayName)
+                    DetailRow(label: "Priority", value: task.priority.displayName, valueColor: task.priority.themeColor)
+                    DetailRow(label: "Status", value: task.status.displayName, valueColor: task.status.themeColor)
                     if task.estimatedCost > 0 {
-                        LabeledContent("Estimated Cost", value: formatINR(task.estimatedCost))
+                        DetailRow(label: "Estimated Cost", value: formatINR(task.estimatedCost))
                     }
-                    LabeledContent("Created", value: task.createdAt.formatted(
-                        .dateTime.day().month(.wide).year()))
+                    DetailRow(
+                        label: "Created",
+                        value: task.createdAt.formatted(.dateTime.day().month(.wide).year())
+                    )
                     if let resolvedAt = task.resolvedAt {
-                        LabeledContent("Resolved", value: resolvedAt.formatted(
-                            .dateTime.day().month(.wide).year()))
+                        DetailRow(
+                            label: "Resolved",
+                            value: resolvedAt.formatted(.dateTime.day().month(.wide).year())
+                        )
                     }
                 }
+                .listRowBackground(Color.surface)
 
                 if !task.description.isEmpty {
                     Section("Description") {
                         Text(task.description)
                             .font(.subheadline)
                             .foregroundStyle(Color.textPrimary)
+                            .padding(.vertical, 4)
                     }
+                    .listRowBackground(Color.surface)
                 }
 
-                // Move to
                 Section("Move to") {
                     ForEach(otherStatuses, id: \.self) { status in
                         Button(action: {
@@ -256,38 +332,46 @@ struct TaskDetailSheet: View {
                                 dismiss()
                             }
                         }) {
-                            HStack {
+                            HStack(spacing: 10) {
                                 Circle()
-                                    .fill(status.color)
+                                    .fill(status.themeColor)
                                     .frame(width: 10, height: 10)
                                 Text(status.displayName)
+                                    .fontWeight(.semibold)
                                     .foregroundStyle(Color.textPrimary)
                                 Spacer()
                                 Image(systemName: "arrow.right")
                                     .font(.caption)
-                                    .foregroundStyle(Color.textSecondary)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(Color.gold)
                             }
                         }
                     }
                 }
+                .listRowBackground(Color.surface)
 
-                // Delete
                 Section {
                     Button(role: .destructive, action: { showDeleteAlert = true }) {
                         HStack {
                             Spacer()
                             Label("Delete Task", systemImage: "trash")
+                                .fontWeight(.semibold)
                             Spacer()
                         }
                     }
                 }
+                .listRowBackground(Color.surface)
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.bgSecondary.ignoresSafeArea())
+            .tint(Color.gold)
             .navigationTitle("Task Details")
             .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Close") { dismiss() }
+                        .foregroundStyle(Color.gold)
                 }
             }
             .alert("Delete Task?", isPresented: $showDeleteAlert) {
@@ -302,6 +386,51 @@ struct TaskDetailSheet: View {
             } message: {
                 Text("This will permanently delete \"\(task.title)\". This action cannot be undone.")
             }
+        }
+    }
+}
+
+// MARK: - DetailRow
+
+struct DetailRow: View {
+    let label: String
+    let value: String
+    var valueColor: Color = .textPrimary
+
+    var body: some View {
+        LabeledContent {
+            Text(value)
+                .fontWeight(.medium)
+                .foregroundStyle(valueColor)
+        } label: {
+            Text(label)
+                .foregroundStyle(Color.textSecondary)
+        }
+    }
+}
+
+private extension MaintenanceTask.TaskStatus {
+    var themeColor: Color {
+        switch self {
+        case .open:
+            Color.negative
+        case .inProgress:
+            Color.gold
+        case .done:
+            Color.positive
+        }
+    }
+}
+
+private extension MaintenanceTask.Priority {
+    var themeColor: Color {
+        switch self {
+        case .low:
+            Color.textSecondary
+        case .medium:
+            Color.gold
+        case .high:
+            Color.negative
         }
     }
 }
