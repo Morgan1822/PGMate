@@ -1,52 +1,57 @@
-import Foundation
+import SwiftUI
 
 struct MaintenanceTask: Identifiable, Codable {
     var id: String
     var propertyId: String
-    var roomId: String?
-    var roomNumber: String?
+    var roomNumber: String
     var title: String
     var description: String
-    var category: MaintenanceCategory
     var status: TaskStatus
-    var assignedTo: String?
-    var estimatedCost: Double?
-    var actualCost: Double?
-    var scheduledDate: Date?
-    var completedDate: Date?
+    var priority: Priority
+    var estimatedCost: Double
+    var createdAt: Date
+    var resolvedAt: Date?
 
-    enum MaintenanceCategory: String, Codable, CaseIterable {
-        case plumbing, electrical, painting, cleaning, other
+    enum TaskStatus: String, Codable, CaseIterable {
+        case open = "open"
+        case inProgress = "inProgress"
+        case done = "done"
 
         var displayName: String {
             switch self {
-            case .plumbing: return "Plumbing"
-            case .electrical: return "Electrical"
-            case .painting: return "Painting"
-            case .cleaning: return "Cleaning"
-            case .other: return "Other"
+            case .open: return "Open"
+            case .inProgress: return "In Progress"
+            case .done: return "Done"
             }
         }
 
-        var icon: String {
+        var color: Color {
             switch self {
-            case .plumbing: return "drop.fill"
-            case .electrical: return "bolt.fill"
-            case .painting: return "paintbrush.fill"
-            case .cleaning: return "sparkles"
-            case .other: return "wrench.fill"
+            case .open: return .red
+            case .inProgress: return .accentGold
+            case .done: return .successGreen
             }
         }
     }
 
-    enum TaskStatus: String, Codable, CaseIterable {
-        case pending, inProgress, done
+    enum Priority: String, Codable, CaseIterable {
+        case low = "low"
+        case medium = "medium"
+        case high = "high"
 
         var displayName: String {
             switch self {
-            case .pending: return "Pending"
-            case .inProgress: return "In Progress"
-            case .done: return "Done"
+            case .low: return "Low"
+            case .medium: return "Medium"
+            case .high: return "High"
+            }
+        }
+
+        var color: Color {
+            switch self {
+            case .low: return .gray
+            case .medium: return .accentGold
+            case .high: return .red
             }
         }
     }

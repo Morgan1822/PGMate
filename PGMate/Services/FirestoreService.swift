@@ -278,57 +278,87 @@ class FirestoreService {
 
         return snap.documents.compactMap { doc in
             let data = doc.data()
-            guard let id = data["id"] as? String,
-                  let title = data["title"] as? String,
-                  let description = data["description"] as? String,
-                  let categoryRaw = data["category"] as? String,
-                  let category = MaintenanceTask.MaintenanceCategory(rawValue: categoryRaw),
-                  let statusRaw = data["status"] as? String,
-                  let status = MaintenanceTask.TaskStatus(rawValue: statusRaw)
-            else { return nil }
+            let id = data["id"] as? String ?? doc.documentID
+            guard let title = data["title"] as? String else { return nil }
+
+            let description = data["description"] as? String ?? ""
 
             // roomNumber may be Int or String or nil
-            let roomNumber: String?
+            let roomNumber: String
             if let rn = data["roomNumber"] as? String {
                 roomNumber = rn
             } else if let rn = data["roomNumber"] as? Int {
                 roomNumber = String(rn)
             } else {
-                roomNumber = nil
+                roomNumber = ""
             }
 
-            let roomId = data["roomId"] as? String
-            let assignedTo = data["assignedTo"] as? String
+            // status: map legacy "pending" to .open
+            let statusRaw = data["status"] as? String ?? "open"
+            let status: MaintenanceTask.TaskStatus
+            if statusRaw == "pending" {
+                status = .open
+            } else {
+                status = MaintenanceTask.TaskStatus(rawValue: statusRaw) ?? .open
+            }
 
-            // costs may be Int or Double or nil
+            // priority: default medium if missing
+            let priorityRaw = data["priority"] as? String ?? "medium"
+            let priority = MaintenanceTask.Priority(rawValue: priorityRaw) ?? .medium
+
+            // estimatedCost may be Int or Double
             let estimatedCost = data["estimatedCost"] as? Double
-                ?? (data["estimatedCost"] as? Int).map { Double($0) }
-            let actualCost = data["actualCost"] as? Double
-                ?? (data["actualCost"] as? Int).map { Double($0) }
+                ?? Double(data["estimatedCost"] as? Int ?? 0)
 
-            let scheduledDate = (data["scheduledDate"] as? Timestamp)?.dateValue()
-            let completedDate = (data["completedDate"] as? Timestamp)?.dateValue()
+            let createdAt = (data["createdAt"] as? Timestamp)?.dateValue()
+                ?? (data["scheduledDate"] as? Timestamp)?.dateValue()
+                ?? Date()
+            let resolvedAt = (data["resolvedAt"] as? Timestamp)?.dateValue()
+                ?? (data["completedDate"] as? Timestamp)?.dateValue()
 
             return MaintenanceTask(
                 id: id,
                 propertyId: propertyId,
-                roomId: roomId,
                 roomNumber: roomNumber,
                 title: title,
                 description: description,
-                category: category,
                 status: status,
-                assignedTo: assignedTo,
+                priority: priority,
                 estimatedCost: estimatedCost,
-                actualCost: actualCost,
-                scheduledDate: scheduledDate,
-                completedDate: completedDate
+                createdAt: createdAt,
+                resolvedAt: resolvedAt
             )
         }
     }
 
     func saveMaintenanceTask(_ task: MaintenanceTask, propertyId: String) async throws {
-        try propertyRef(propertyId).collection("maintenance").document(task.id).setData(from: task)
+        var data: [String: Any] = [
+            "id": task.id,
+            "propertyId": task.propertyId,
+            "roomNumber": task.roomNumber,
+            "title": task.title,
+            "description": task.description,
+            "status": task.status.rawValue,
+            "priority": task.priority.rawValue,
+            "estimatedCost": task.estimatedCost,
+            "createdAt": Timestamp(date: task.createdAt)
+        ]
+        if let resolvedAt = task.resolvedAt {
+            data["resolvedAt"] = Timestamp(date: resolvedAt)
+        }
+        try await propertyRef(propertyId)
+            .collection("maintenance")
+            .document(task.id).setData(data)
+    }
+
+    func updateTaskStatus(taskId: String, status: MaintenanceTask.TaskStatus, propertyId: String, resolvedAt: Date?) async throws {
+        var data: [String: Any] = ["status": status.rawValue]
+        if let resolvedAt = resolvedAt {
+            data["resolvedAt"] = Timestamp(date: resolvedAt)
+        }
+        try await propertyRef(propertyId)
+            .collection("maintenance")
+            .document(taskId).updateData(data)
     }
 
     func deleteMaintenanceTask(id: String, propertyId: String) async throws {

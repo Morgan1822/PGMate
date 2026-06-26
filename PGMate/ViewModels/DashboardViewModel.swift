@@ -111,8 +111,8 @@ class DashboardViewModel {
         // Recent maintenance
         let recentMaintenance = maintenanceTasks
             .sorted {
-                ($0.completedDate ?? $0.scheduledDate ?? Date()) >
-                ($1.completedDate ?? $1.scheduledDate ?? Date())
+                ($0.resolvedAt ?? $0.createdAt) >
+                ($1.resolvedAt ?? $1.createdAt)
             }
             .prefix(2)
         for task in recentMaintenance {
@@ -121,7 +121,7 @@ class DashboardViewModel {
                 color: .accentGold,
                 title: task.title,
                 subtitle: task.status.displayName,
-                date: task.completedDate ?? task.scheduledDate ?? Date()
+                date: task.resolvedAt ?? task.createdAt
             ))
         }
 
