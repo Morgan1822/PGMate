@@ -14,7 +14,8 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
+            ZStack {
+                Color.bgPrimary.ignoresSafeArea()
                 if vm.isLoading {
                     loadingView
                 } else {

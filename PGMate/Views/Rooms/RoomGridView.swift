@@ -67,7 +67,8 @@ struct RoomGridView: View {
                     .refreshable { await vm.load() }
                 }
             }
-            .background(Color.bgPrimary)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.bgPrimary.ignoresSafeArea())
             .navigationTitle("Rooms")
             .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
