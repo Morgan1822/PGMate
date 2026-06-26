@@ -19,17 +19,14 @@ struct TenantDetailView: View {
                                 Circle()
                                     .fill(Color.primaryIndigo.opacity(0.12))
                                     .frame(width: 80, height: 80)
-                                if let photoURL = tenant.photoURL, !photoURL.isEmpty {
-                                    AsyncImage(url: URL(string: photoURL)) { image in
-                                        image.resizable().scaledToFill()
-                                    } placeholder: {
-                                        Text(tenant.initials)
-                                            .font(.largeTitle)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.primaryIndigo)
-                                    }
-                                    .frame(width: 80, height: 80)
-                                    .clipShape(Circle())
+                                if let data = UserDefaults.standard.data(
+                                    forKey: "tenant_photo_\(tenant.id)"),
+                                   let uiImage = UIImage(data: data) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 80, height: 80)
+                                        .clipShape(Circle())
                                 } else {
                                     Text(tenant.initials)
                                         .font(.largeTitle)

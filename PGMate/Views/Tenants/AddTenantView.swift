@@ -13,8 +13,10 @@ struct AddTenantView: View {
     @State private var monthlyRent = ""
     @State private var emergencyName = ""
     @State private var emergencyPhone = ""
-    @State private var capturedPhoto: UIImage?
+    @State private var selectedImage: UIImage?
+    @State private var showPhotoOptions = false
     @State private var showCamera = false
+    @State private var showLibrary = false
     @State private var vacantRooms: [Room] = []
     @State private var isLoading = false
     @State private var errorMessage = ""
@@ -27,7 +29,7 @@ struct AddTenantView: View {
                     HStack {
                         Spacer()
                         VStack(spacing: 8) {
-                            Button(action: { showCamera = true }) {
+                            Button(action: { showPhotoOptions = true }) {
                                 ZStack {
                                     Circle()
                                         .fill(Color.backgroundLight)
@@ -37,7 +39,7 @@ struct AddTenantView: View {
                                                 Color.primaryIndigo.opacity(0.3),
                                                 lineWidth: 2)
                                         )
-                                    if let photo = capturedPhoto {
+                                    if let photo = selectedImage {
                                         Image(uiImage: photo)
                                             .resizable()
                                             .scaledToFill()
@@ -55,10 +57,20 @@ struct AddTenantView: View {
                                     }
                                 }
                             }
-                            if capturedPhoto != nil {
-                                Button("Retake") {
-                                    capturedPhoto = nil
-                                    showCamera = true
+                            .confirmationDialog(
+                                "Add Photo",
+                                isPresented: $showPhotoOptions,
+                                titleVisibility: .visible
+                            ) {
+                                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                                    Button("Take Photo") { showCamera = true }
+                                }
+                                Button("Choose from Library") { showLibrary = true }
+                                Button("Cancel", role: .cancel) {}
+                            }
+                            if selectedImage != nil {
+                                Button("Change Photo") {
+                                    showPhotoOptions = true
                                 }
                                 .font(.caption)
                                 .foregroundColor(.primaryIndigo)
@@ -130,7 +142,10 @@ struct AddTenantView: View {
                 }
             }
             .sheet(isPresented: $showCamera) {
-                ImagePicker(image: $capturedPhoto)
+                ImagePicker(selectedImage: $selectedImage, sourceType: .camera)
+            }
+            .sheet(isPresented: $showLibrary) {
+                ImagePicker(selectedImage: $selectedImage, sourceType: .photoLibrary)
             }
             .task { await loadVacantRooms() }
         }
@@ -180,11 +195,14 @@ struct AddTenantView: View {
             photoURL: nil
         )
 
-        let photoData = capturedPhoto?.jpegData(compressionQuality: 0.8)
+        // Save photo locally in UserDefaults
+        if let imageData = selectedImage?.jpegData(compressionQuality: 0.7) {
+            UserDefaults.standard.set(imageData, forKey: "tenant_photo_\(tenant.id)")
+        }
 
         Task {
             do {
-                try await viewModel.addTenant(tenant, photoData: photoData)
+                try await viewModel.addTenant(tenant, photoData: nil)
                 await MainActor.run { dismiss() }
             } catch {
                 await MainActor.run {
