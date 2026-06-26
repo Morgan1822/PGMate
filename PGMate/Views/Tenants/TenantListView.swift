@@ -15,26 +15,28 @@ struct TenantListView: View {
                         .foregroundStyle(Color.textSecondary)
                     TextField("Search tenants...", text: $vm.searchText)
                         .autocorrectionDisabled()
-                        .foregroundStyle(Color.textDark)
+                        .foregroundStyle(Color.textPrimary)
                 }
                 .padding(12)
                 .background(Color.surface, in: RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        .stroke(Color.textTertiary.opacity(0.3), lineWidth: 1)
                 )
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(Color.surface)
+                .background(Color.bgPrimary)
 
                 Divider()
+                    .background(Color.textTertiary.opacity(0.3))
 
                 if vm.isLoading {
                     VStack(spacing: 10) {
-                        ProgressView().tint(Color.primaryIndigo)
+                        ProgressView().tint(Color.gold)
                         Text("Loading...").foregroundStyle(Color.textSecondary).font(.caption)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.bgPrimary)
                 } else if vm.filteredTenants.isEmpty {
                     EmptyStateView(
                         icon: "person.2.slash.fill",
@@ -55,12 +57,14 @@ struct TenantListView: View {
                         }
                     }
                     .listStyle(.plain)
+                    .background(Color.bgSecondary.ignoresSafeArea())
+                    .scrollContentBackground(.hidden)
                     .refreshable { await vm.load() }
                 }
             }
-            .background(Color.backgroundLight)
+            .background(Color.bgPrimary)
             .navigationTitle("Tenants")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -93,7 +97,7 @@ struct TenantRow: View {
             // Avatar
             ZStack {
                 Circle()
-                    .fill(Color.primaryIndigo.opacity(0.12))
+                    .fill(Color.navyLight)
                     .frame(width: 48, height: 48)
                 if let data = UserDefaults.standard.data(forKey: "tenant_photo_\(tenant.id)"),
                    let uiImage = UIImage(data: data) {
@@ -106,7 +110,7 @@ struct TenantRow: View {
                     Text(tenant.initials)
                         .font(.headline)
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.primaryIndigo)
+                        .foregroundStyle(Color.white)
                 }
             }
 
@@ -114,7 +118,7 @@ struct TenantRow: View {
                 Text(tenant.name)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(Color.textDark)
+                    .foregroundStyle(Color.textPrimary)
                 Text("Room \(tenant.roomNumber) • \(tenant.phone)")
                     .font(.caption)
                     .foregroundStyle(Color.textSecondary)
@@ -123,7 +127,7 @@ struct TenantRow: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 3) {
-                StatusBadge(text: "Active", color: .successGreen)
+                StatusBadge(text: "Active", color: .positive)
                 Text("\(tenant.monthsStayed)mo")
                     .font(.caption2)
                     .foregroundStyle(Color.textSecondary)
@@ -131,10 +135,10 @@ struct TenantRow: View {
 
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundStyle(Color.textSecondary)
+                .foregroundStyle(Color.textTertiary)
         }
         .padding(14)
-        .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
 }

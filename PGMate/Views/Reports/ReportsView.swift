@@ -11,7 +11,9 @@ struct ReportsView: View {
             Group {
                 if viewModel.isLoading {
                     ProgressView("Loading reports…")
+                        .tint(Color.gold)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.bgPrimary.ignoresSafeArea())
                 } else {
                     ScrollView {
                         VStack(spacing: 20) {
@@ -34,6 +36,7 @@ struct ReportsView: View {
                 }
             }
             .navigationTitle("Reports")
+            .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
             .task {
                 if let pid = auth.currentPropertyId {
@@ -51,14 +54,14 @@ struct ReportsView: View {
     private func errorBanner(_ message: String) -> some View {
         HStack {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
+                .foregroundStyle(Color.negative)
             Text(message)
                 .font(.footnote)
-                .foregroundStyle(.red)
+                .foregroundStyle(Color.negative)
             Spacer()
         }
         .padding(12)
-        .background(Color.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+        .background(Color.negative.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
     }
 }
 
@@ -114,10 +117,10 @@ private struct PLCard: View {
                 VStack(spacing: 12) {
                     PLRow(label: "Gross Collected",
                           amount: report.grossCollected,
-                          color: .successGreen)
+                          color: .positive)
                     PLRow(label: "Maintenance Cost",
                           amount: report.maintenanceCost,
-                          color: .red)
+                          color: .negative)
 
                     Divider()
 
@@ -128,7 +131,7 @@ private struct PLCard: View {
                         Spacer()
                         Text(formatINR(report.netProfit))
                             .font(.title3).fontWeight(.bold)
-                            .foregroundStyle(report.netProfit >= 0 ? Color.successGreen : Color.red)
+                            .foregroundStyle(report.netProfit >= 0 ? Color.positive : Color.negative)
                     }
 
                     // Month-over-month delta
@@ -144,7 +147,7 @@ private struct PLCard: View {
                     .padding(32)
             }
         }
-        .background(.background, in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
     }
 
@@ -157,12 +160,12 @@ private struct PLCard: View {
             if diff > 0 {
                 Label("↑ \(formatINR(diff)) vs last month", systemImage: "")
                     .font(.caption)
-                    .foregroundStyle(Color.successGreen)
+                    .foregroundStyle(Color.positive)
                     .labelStyle(.titleOnly)
             } else if diff < 0 {
                 Label("↓ \(formatINR(abs(diff))) vs last month", systemImage: "")
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color.negative)
                     .labelStyle(.titleOnly)
             } else {
                 Text("— same as last month")
@@ -250,14 +253,14 @@ private struct TrendChartSection: View {
             }
         }
         .padding(16)
-        .background(.background, in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
     }
 
     private func barColor(for report: MonthlyReport) -> Color {
         let isSelected = Calendar.current.isDate(
             report.month, equalTo: viewModel.selectedMonth, toGranularity: .month)
-        let base: Color = report.netProfit >= 0 ? .successGreen : .red
+        let base: Color = report.netProfit >= 0 ? .positive : .negative
         return isSelected ? base : base.opacity(0.55)
     }
 
@@ -316,7 +319,7 @@ private struct MonthTableSection: View {
                                 Calendar.current.isDate(report.month,
                                     equalTo: viewModel.selectedMonth,
                                     toGranularity: .month)
-                                ? Color.accentColor : Color.primary
+                                ? Color.gold : Color.textPrimary
                             )
 
                         Spacer()
@@ -324,7 +327,7 @@ private struct MonthTableSection: View {
                         Text(formatINR(report.netProfit))
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundStyle(report.netProfit >= 0 ? Color.successGreen : Color.red)
+                            .foregroundStyle(report.netProfit >= 0 ? Color.positive : Color.negative)
 
                         // Delta vs previous month
                         let sortedAsc = viewModel.monthlyData.sorted { $0.month < $1.month }
@@ -333,7 +336,7 @@ private struct MonthTableSection: View {
                             let diff = report.netProfit - sortedAsc[thisIdx - 1].netProfit
                             Text(diff >= 0 ? "↑ \(abbreviatedINR(diff))" : "↓ \(abbreviatedINR(abs(diff)))")
                                 .font(.caption)
-                                .foregroundStyle(diff >= 0 ? Color.successGreen : Color.red)
+                                .foregroundStyle(diff >= 0 ? Color.positive : Color.negative)
                                 .frame(width: 64, alignment: .trailing)
                         }
                     }
@@ -343,7 +346,7 @@ private struct MonthTableSection: View {
                         Calendar.current.isDate(report.month,
                             equalTo: viewModel.selectedMonth,
                             toGranularity: .month)
-                        ? Color.accentColor.opacity(0.07) : Color.clear
+                        ? Color.gold.opacity(0.1) : Color.clear
                     )
                 }
                 .buttonStyle(.plain)
@@ -373,13 +376,13 @@ private struct MonthTableSection: View {
                     Text(formatINR(totalProfit))
                         .font(.subheadline)
                         .fontWeight(.bold)
-                        .foregroundStyle(totalProfit >= 0 ? Color.successGreen : Color.red)
+                        .foregroundStyle(totalProfit >= 0 ? Color.positive : Color.negative)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
         }
-        .background(.background, in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
     }
 }

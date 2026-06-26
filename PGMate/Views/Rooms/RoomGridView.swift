@@ -30,17 +30,19 @@ struct RoomGridView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                 }
-                .background(Color.surface)
+                .background(Color.bgPrimary)
 
                 Divider()
+                    .background(Color.textTertiary.opacity(0.3))
 
                 // MARK: Room grid
                 if vm.isLoading {
                     VStack(spacing: 10) {
-                        ProgressView().tint(Color.primaryIndigo)
+                        ProgressView().tint(Color.gold)
                         Text("Loading...").foregroundStyle(Color.textSecondary).font(.caption)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.bgPrimary.ignoresSafeArea())
                 } else if vm.filteredRooms.isEmpty {
                     EmptyStateView(
                         icon: "bed.double.fill",
@@ -61,12 +63,13 @@ struct RoomGridView: View {
                         }
                         .padding(16)
                     }
+                    .background(Color.bgSecondary.ignoresSafeArea())
                     .refreshable { await vm.load() }
                 }
             }
-            .background(Color.backgroundLight)
+            .background(Color.bgPrimary)
             .navigationTitle("Rooms")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -105,36 +108,43 @@ struct RoomCard: View {
 
     var statusColor: Color {
         switch room.status {
-        case .vacant:      return .successGreen
-        case .occupied:    return .primaryIndigo
-        case .maintenance: return .accentGold
+        case .vacant:      return .positive
+        case .occupied:    return .navyLight
+        case .maintenance: return .warning
         }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
+        VStack(alignment: .leading, spacing: 0) {
+            // Top row: room number + status dot
+            HStack(alignment: .top) {
                 Text(room.roomNumber)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundStyle(Color.textDark)
+                    .foregroundStyle(Color.textPrimary)
                 Spacer()
                 Circle()
                     .fill(statusColor)
                     .frame(width: 8, height: 8)
+                    .padding(.top, 4)
             }
 
+            // Room type
             Text(room.type.displayName)
                 .font(.caption)
                 .foregroundStyle(Color.textSecondary)
+                .padding(.top, 4)
 
-            Spacer()
+            Spacer(minLength: 6)
 
+            // Rent amount
             Text(formatINR(room.monthlyRent) + "/mo")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundStyle(Color.primaryIndigo)
+                .foregroundStyle(Color.navyPrimary)
+                .padding(.bottom, 5)
 
+            // Status pill — always at bottom, left aligned, clipped inside card
             Text(room.status.displayName)
                 .font(.caption2)
                 .fontWeight(.medium)
@@ -142,16 +152,18 @@ struct RoomCard: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(statusColor.opacity(0.12), in: Capsule())
+                .lineLimit(1)
         }
         .padding(12)
         .frame(height: 120)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
-        .shadow(color: statusColor.opacity(0.15), radius: 4, x: 0, y: 2)
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 14))
+        .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(statusColor.opacity(0.3), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(statusColor.opacity(0.35), lineWidth: 1.5)
         )
+        .clipped()
     }
 }
 
@@ -167,13 +179,13 @@ struct FilterChip: View {
             Text(title)
                 .font(.subheadline)
                 .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundStyle(isSelected ? Color.textOnPrimary : Color.textDark)
+                .foregroundStyle(isSelected ? Color.textOnNavy : Color.textPrimary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(isSelected ? Color.primaryIndigo : Color.surface, in: Capsule())
+                .background(isSelected ? Color.navyPrimary : Color.surface, in: Capsule())
                 .overlay(
                     Capsule()
-                        .stroke(isSelected ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
+                        .stroke(isSelected ? Color.clear : Color.textTertiary.opacity(0.4), lineWidth: 1)
                 )
         }
     }

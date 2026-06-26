@@ -10,7 +10,9 @@ struct MaintenanceBoardView: View {
             Group {
                 if vm.isLoading && vm.tasks.isEmpty {
                     ProgressView()
+                        .tint(Color.gold)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.bgPrimary.ignoresSafeArea())
                 } else if vm.tasks.isEmpty {
                     EmptyStateView(
                         icon: "wrench.and.screwdriver",
@@ -34,11 +36,12 @@ struct MaintenanceBoardView: View {
                         }
                         .padding(16)
                     }
+                    .background(Color.bgSecondary.ignoresSafeArea())
                 }
             }
-            .background(Color.backgroundLight.ignoresSafeArea())
+            .background(Color.bgPrimary.ignoresSafeArea())
             .navigationTitle("Maintenance")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -50,7 +53,7 @@ struct MaintenanceBoardView: View {
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Color.red)
+                                .background(Color.negative)
                                 .clipShape(Capsule())
                         }
                         Button(action: { showAddTask = true }) {
@@ -99,15 +102,15 @@ struct KanbanColumnView: View {
                 Text(status.displayName)
                     .font(.subheadline)
                     .fontWeight(.bold)
-                    .foregroundColor(.textDark)
+                    .foregroundStyle(Color.textPrimary)
                 Spacer()
                 Text("\(tasks.count)")
                     .font(.caption)
                     .fontWeight(.semibold)
-                    .foregroundColor(tasks.isEmpty ? .secondary : .white)
+                    .foregroundStyle(tasks.isEmpty ? Color.textSecondary : Color.textOnNavy)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(tasks.isEmpty ? Color.gray.opacity(0.2) : status.color)
+                    .background(tasks.isEmpty ? Color.surfaceElevated : status.color)
                     .clipShape(Capsule())
             }
             .padding(.horizontal, 12)
@@ -118,7 +121,7 @@ struct KanbanColumnView: View {
                 if tasks.isEmpty {
                     Text("No tasks")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(Color.textTertiary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 20)
                 } else {
@@ -132,11 +135,11 @@ struct KanbanColumnView: View {
             .padding(.bottom, 12)
         }
         .frame(width: 260)
-        .background(status.color.opacity(0.06))
+        .background(status.color.opacity(0.07))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(status.color.opacity(0.2), lineWidth: 1)
+                .stroke(status.color.opacity(0.22), lineWidth: 1)
         )
     }
 }
@@ -152,7 +155,7 @@ struct TaskCardView: View {
             Text(task.title)
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundColor(.textDark)
+                .foregroundStyle(Color.textPrimary)
                 .lineLimit(2)
 
             // Room chip
@@ -160,10 +163,10 @@ struct TaskCardView: View {
                 Text("Room \(task.roomNumber)")
                     .font(.caption2)
                     .fontWeight(.medium)
-                    .foregroundColor(.primaryIndigo)
+                    .foregroundStyle(Color.navyPrimary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(Color.primaryIndigo.opacity(0.1))
+                    .background(Color.navyPrimary.opacity(0.1))
                     .clipShape(Capsule())
             }
 
@@ -175,7 +178,7 @@ struct TaskCardView: View {
                         .frame(width: 6, height: 6)
                     Text(task.priority.displayName)
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(Color.textSecondary)
                 }
 
                 Spacer()
@@ -185,18 +188,18 @@ struct TaskCardView: View {
                     Text(formatINR(task.estimatedCost))
                         .font(.caption2)
                         .fontWeight(.semibold)
-                        .foregroundColor(.textDark)
+                        .foregroundStyle(Color.textPrimary)
                 }
             }
 
             // Time ago
             Text(task.createdAt.timeAgoString)
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.textTertiary)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
+        .background(Color.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
@@ -239,7 +242,7 @@ struct TaskDetailSheet: View {
                     Section("Description") {
                         Text(task.description)
                             .font(.subheadline)
-                            .foregroundColor(.textDark)
+                            .foregroundStyle(Color.textPrimary)
                     }
                 }
 
@@ -258,11 +261,11 @@ struct TaskDetailSheet: View {
                                     .fill(status.color)
                                     .frame(width: 10, height: 10)
                                 Text(status.displayName)
-                                    .foregroundColor(.textDark)
+                                    .foregroundStyle(Color.textPrimary)
                                 Spacer()
                                 Image(systemName: "arrow.right")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(Color.textSecondary)
                             }
                         }
                     }

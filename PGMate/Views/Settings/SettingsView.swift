@@ -46,7 +46,7 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
             .alert("Sign Out?", isPresented: $showSignOutAlert) {
                 Button("Cancel", role: .cancel) {}

@@ -12,33 +12,69 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         #else
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
         #endif
+
+        configureNavBarAppearance()
         configureTabBarAppearance()
         return true
     }
 
+    // MARK: - Global Navigation Bar Appearance
+    private func configureNavBarAppearance() {
+        let navy = UIColor(hex: "#1B3A6B")
+        let white = UIColor.white
+
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = navy
+
+        // Title attributes
+        appearance.titleTextAttributes = [
+            .foregroundColor: white,
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+        ]
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: white,
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+
+        // Back button chevron color
+        appearance.setBackIndicatorImage(
+            UIImage(systemName: "chevron.left"),
+            transitionMaskImage: UIImage(systemName: "chevron.left")
+        )
+
+        UINavigationBar.appearance().standardAppearance   = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance    = appearance
+        UINavigationBar.appearance().tintColor            = white  // back button & bar buttons
+    }
+
+    // MARK: - Global Tab Bar Appearance
     private func configureTabBarAppearance() {
-        let navyBlue = UIColor(Color.primaryIndigo)
-        let gold     = UIColor(Color.accentGold)
+        let navy = UIColor(hex: "#1B3A6B")
+        let gold = UIColor(hex: "#E8A33D")
+        let dimWhite = UIColor.white.withAlphaComponent(0.65)
+
+        let itemAppearance = UITabBarItemAppearance(style: .stacked)
+        // Selected — gold
+        itemAppearance.selected.iconColor = gold
+        itemAppearance.selected.titleTextAttributes = [.foregroundColor: gold]
+        // Unselected — white at 65%
+        itemAppearance.normal.iconColor = dimWhite
+        itemAppearance.normal.titleTextAttributes = [.foregroundColor: dimWhite]
 
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = navyBlue
+        appearance.backgroundColor = navy
+        // Suppress the floating pill/compact style introduced in iOS 18
+        appearance.stackedLayoutAppearance   = itemAppearance
+        appearance.inlineLayoutAppearance    = itemAppearance
+        appearance.compactInlineLayoutAppearance = itemAppearance
 
-        // Selected — gold icon + label
-        appearance.stackedLayoutAppearance.selected.iconColor = gold
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-            .foregroundColor: gold
-        ]
-
-        // Unselected — white at 70%
-        let dimWhite = UIColor.white.withAlphaComponent(0.7)
-        appearance.stackedLayoutAppearance.normal.iconColor = dimWhite
-        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-            .foregroundColor: dimWhite
-        ]
-
-        UITabBar.appearance().standardAppearance  = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
+        UITabBar.appearance().standardAppearance   = appearance
+        UITabBar.appearance().scrollEdgeAppearance  = appearance
+        // Force opaque — prevents translucency causing pill backgrounds
+        UITabBar.appearance().isTranslucent = false
     }
 }
 
@@ -53,7 +89,7 @@ struct PGMateApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
-                .tint(Color.primaryIndigo)
+                .tint(Color.gold)
         }
     }
 

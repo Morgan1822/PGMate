@@ -16,11 +16,13 @@ struct RootView: View {
 }
 
 // MARK: - Navy nav bar modifier
+// Applied on each NavigationStack in addition to the global UINavigationBarAppearance,
+// ensuring SwiftUI toolbars also pick up the navy theme.
 
 struct NavyNavBar: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .toolbarBackground(Color.primaryIndigo, for: .navigationBar)
+            .toolbarBackground(Color.navyPrimary, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
     }
@@ -48,7 +50,7 @@ struct MainTabView: View {
             MoreView()
                 .tabItem { Label("More", systemImage: "ellipsis.circle.fill") }
         }
-        .tint(Color.accentGold)
+        .tint(Color.gold)
     }
 }
 
@@ -58,17 +60,44 @@ struct MoreView: View {
     var body: some View {
         NavigationStack {
             List {
-                NavigationLink(destination: MaintenanceBoardView()) {
-                    Label("Maintenance", systemImage: "wrench.and.screwdriver.fill")
+                Section {
+                    NavigationLink(destination: MaintenanceBoardView()) {
+                        Label {
+                            Text("Maintenance")
+                                .foregroundStyle(Color.textPrimary)
+                        } icon: {
+                            Image(systemName: "wrench.and.screwdriver.fill")
+                                .foregroundStyle(Color.gold)
+                        }
+                    }
+
+                    NavigationLink(destination: ReportsView()) {
+                        Label {
+                            Text("Reports")
+                                .foregroundStyle(Color.textPrimary)
+                        } icon: {
+                            Image(systemName: "chart.bar.fill")
+                                .foregroundStyle(Color.gold)
+                        }
+                    }
+
+                    NavigationLink(destination: SettingsView()) {
+                        Label {
+                            Text("Settings")
+                                .foregroundStyle(Color.textPrimary)
+                        } icon: {
+                            Image(systemName: "gearshape.fill")
+                                .foregroundStyle(Color.gold)
+                        }
+                    }
                 }
-                NavigationLink(destination: ReportsView()) {
-                    Label("Reports", systemImage: "chart.bar.fill")
-                }
-                NavigationLink(destination: SettingsView()) {
-                    Label("Settings", systemImage: "gearshape.fill")
-                }
+                .listRowBackground(Color.surface)
             }
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(Color.bgSecondary.ignoresSafeArea())
             .navigationTitle("More")
+            .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
         }
     }

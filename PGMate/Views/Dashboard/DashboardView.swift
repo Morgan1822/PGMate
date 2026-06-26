@@ -26,10 +26,11 @@ struct DashboardView: View {
                                 Text("\(greeting), \(vm.ownerName)")
                                     .font(.title2)
                                     .fontWeight(.bold)
-                                    .foregroundStyle(Color.textDark)
+                                    .foregroundStyle(Color.textPrimary)
                                 Text(vm.propertyName)
                                     .font(.subheadline)
-                                    .foregroundStyle(Color.primaryIndigo)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(Color.gold)
                                 Text(Date().formatted(
                                     .dateTime.weekday(.wide).day().month(.wide).year()))
                                     .font(.caption)
@@ -42,13 +43,15 @@ struct DashboardView: View {
                             // MARK: Occupancy Card
                             VStack(spacing: 16) {
                                 ZStack {
+                                    // Track ring
                                     Circle()
-                                        .stroke(Color.primaryIndigo.opacity(0.15), lineWidth: 14)
+                                        .stroke(Color.surfaceElevated, lineWidth: 14)
                                         .frame(width: 140, height: 140)
+                                    // Gold progress ring
                                     Circle()
                                         .trim(from: 0, to: vm.occupancyRate)
                                         .stroke(
-                                            Color.primaryIndigo,
+                                            Color.gold,
                                             style: StrokeStyle(lineWidth: 14, lineCap: .round))
                                         .frame(width: 140, height: 140)
                                         .rotationEffect(.degrees(-90))
@@ -57,7 +60,7 @@ struct DashboardView: View {
                                         Text("\(vm.occupiedRooms)/\(vm.totalRooms)")
                                             .font(.title2)
                                             .fontWeight(.bold)
-                                            .foregroundStyle(Color.textDark)
+                                            .foregroundStyle(Color.textPrimary)
                                         Text("Rooms")
                                             .font(.caption)
                                             .foregroundStyle(Color.textSecondary)
@@ -66,15 +69,16 @@ struct DashboardView: View {
 
                                 Text("\(Int(vm.occupancyRate * 100))% Occupied")
                                     .font(.headline)
-                                    .foregroundStyle(Color.textDark)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(Color.textPrimary)
 
                                 HStack(spacing: 16) {
                                     StatusBadge(
                                         text: "\(vm.vacantRooms) Vacant",
-                                        color: .successGreen)
+                                        color: .positive)
                                     StatusBadge(
                                         text: "\(vm.maintenanceRooms) Maintenance",
-                                        color: .accentGold)
+                                        color: .warning)
                                 }
                             }
                             .padding(24)
@@ -91,11 +95,11 @@ struct DashboardView: View {
                                 MetricCard(
                                     title: "Collected",
                                     value: formatINR(vm.totalCollected),
-                                    valueColor: .successGreen)
+                                    valueColor: .positive)
                                 MetricCard(
                                     title: "Pending",
                                     value: formatINR(vm.totalPending),
-                                    valueColor: .accentGold)
+                                    valueColor: .pending)
                             }
                             .padding(.horizontal, 20)
 
@@ -106,13 +110,13 @@ struct DashboardView: View {
                                         AlertRow(
                                             icon: "exclamationmark.circle.fill",
                                             message: "\(vm.overdueCount) tenant(s) have overdue rent",
-                                            color: .accentGold)
+                                            color: .negative)
                                     }
                                     if vm.pendingMaintenanceCount > 0 {
                                         AlertRow(
                                             icon: "wrench.fill",
                                             message: "\(vm.pendingMaintenanceCount) maintenance tasks pending",
-                                            color: .accentGold)
+                                            color: .warning)
                                     }
                                 }
                                 .padding(.horizontal, 20)
@@ -122,7 +126,7 @@ struct DashboardView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Recent Activity")
                                     .font(.headline)
-                                    .foregroundStyle(Color.textDark)
+                                    .foregroundStyle(Color.textPrimary)
 
                                 if vm.recentActivity.isEmpty {
                                     EmptyStateView(
@@ -139,7 +143,7 @@ struct DashboardView: View {
                                             }
                                         }
                                     }
-                                    .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
+                                    .background(Color.surface, in: RoundedRectangle(cornerRadius: 14))
                                     .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 2)
                                 }
                             }
@@ -149,7 +153,7 @@ struct DashboardView: View {
                         }
                         .padding(.bottom, 20)
                     }
-                    .background(Color.backgroundLight.ignoresSafeArea())
+                    .background(Color.bgPrimary.ignoresSafeArea())
                     .refreshable { await vm.load() }
                 }
             }
@@ -166,12 +170,13 @@ struct DashboardView: View {
     private var loadingView: some View {
         VStack(spacing: 10) {
             ProgressView()
-                .tint(Color.primaryIndigo)
+                .tint(Color.gold)
             Text("Loading...")
                 .foregroundStyle(Color.textSecondary)
                 .font(.caption)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.bgPrimary.ignoresSafeArea())
     }
 }
 
@@ -188,14 +193,18 @@ struct AlertRow: View {
                 .foregroundStyle(color)
             Text(message)
                 .font(.subheadline)
-                .foregroundStyle(Color.textDark)
+                .foregroundStyle(Color.textPrimary)
             Spacer()
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundStyle(Color.textSecondary)
+                .foregroundStyle(Color.textTertiary)
         }
         .padding(14)
-        .background(color.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(color.opacity(0.3), lineWidth: 1)
+        )
     }
 }
 
@@ -217,7 +226,7 @@ struct ActivityRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title)
                     .font(.subheadline)
-                    .foregroundStyle(Color.textDark)
+                    .foregroundStyle(Color.textPrimary)
                     .lineLimit(1)
                 Text(item.subtitle)
                     .font(.caption)
@@ -226,7 +235,7 @@ struct ActivityRow: View {
             Spacer()
             Text(item.timeAgo)
                 .font(.caption2)
-                .foregroundStyle(Color.textSecondary)
+                .foregroundStyle(Color.textTertiary)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
