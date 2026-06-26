@@ -131,6 +131,7 @@ struct AddTenantView: View {
             }
             .navigationTitle("Add Tenant")
             .navigationBarTitleDisplayMode(.inline)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }

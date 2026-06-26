@@ -24,7 +24,7 @@ struct RentReminderView: View {
                     HStack {
                         Text("Select tenants to remind")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(Color.textSecondary)
                         Spacer()
                         Button(selectedTenants.count == unpaidRecords.count
                                ? "Deselect All" : "Select All") {
@@ -35,7 +35,7 @@ struct RentReminderView: View {
                             }
                         }
                         .font(.subheadline)
-                        .foregroundColor(.primaryIndigo)
+                        .foregroundStyle(Color.primaryIndigo)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
@@ -45,8 +45,8 @@ struct RentReminderView: View {
                             HStack(spacing: 12) {
                                 Image(systemName: selectedTenants.contains(record.id)
                                       ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(selectedTenants.contains(record.id)
-                                                     ? .primaryIndigo : .secondary)
+                                    .foregroundStyle(selectedTenants.contains(record.id)
+                                                     ? Color.primaryIndigo : Color.textSecondary)
                                     .font(.title3)
 
                                 VStack(alignment: .leading, spacing: 2) {
@@ -98,6 +98,7 @@ struct RentReminderView: View {
             }
             .navigationTitle("Rent Reminders")
             .navigationBarTitleDisplayMode(.inline)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Close") { dismiss() }

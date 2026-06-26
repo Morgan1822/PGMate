@@ -39,6 +39,7 @@ struct MaintenanceBoardView: View {
             .background(Color.backgroundLight.ignoresSafeArea())
             .navigationTitle("Maintenance")
             .navigationBarTitleDisplayMode(.large)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 12) {
@@ -280,6 +281,7 @@ struct TaskDetailSheet: View {
             }
             .navigationTitle("Task Details")
             .navigationBarTitleDisplayMode(.inline)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Close") { dismiss() }

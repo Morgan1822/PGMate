@@ -15,33 +15,44 @@ struct RootView: View {
     }
 }
 
+// MARK: - Navy nav bar modifier
+
+struct NavyNavBar: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .toolbarBackground(Color.primaryIndigo, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+}
+
+extension View {
+    func navyNavBar() -> some View {
+        modifier(NavyNavBar())
+    }
+}
+
+// MARK: - MainTabView
+
 struct MainTabView: View {
     var body: some View {
         TabView {
             DashboardView()
-                .tabItem {
-                    Label("Dashboard", systemImage: "house.fill")
-                }
+                .tabItem { Label("Dashboard", systemImage: "house.fill") }
             RoomGridView()
-                .tabItem {
-                    Label("Rooms", systemImage: "bed.double.fill")
-                }
+                .tabItem { Label("Rooms", systemImage: "bed.double.fill") }
             TenantListView()
-                .tabItem {
-                    Label("Tenants", systemImage: "person.2.fill")
-                }
+                .tabItem { Label("Tenants", systemImage: "person.2.fill") }
             RentBoardView()
-                .tabItem {
-                    Label("Rent", systemImage: "indianrupeesign.circle.fill")
-                }
+                .tabItem { Label("Rent", systemImage: "indianrupeesign.circle.fill") }
             MoreView()
-                .tabItem {
-                    Label("More", systemImage: "ellipsis.circle.fill")
-                }
+                .tabItem { Label("More", systemImage: "ellipsis.circle.fill") }
         }
-        .tint(.primaryIndigo)
+        .tint(Color.accentGold)
     }
 }
+
+// MARK: - MoreView
 
 struct MoreView: View {
     var body: some View {
@@ -58,6 +69,7 @@ struct MoreView: View {
                 }
             }
             .navigationTitle("More")
+            .navyNavBar()
         }
     }
 }

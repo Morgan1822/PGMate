@@ -40,7 +40,7 @@ struct AddRoomView: View {
                             Spacer()
                             if amenities.contains(amenity) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.primaryIndigo)
+                                    .foregroundStyle(Color.primaryIndigo)
                             }
                         }
                         .contentShape(Rectangle())
@@ -56,6 +56,7 @@ struct AddRoomView: View {
             }
             .navigationTitle("Add Room")
             .navigationBarTitleDisplayMode(.inline)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }

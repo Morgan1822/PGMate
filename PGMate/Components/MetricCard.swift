@@ -3,7 +3,7 @@ import SwiftUI
 struct MetricCard: View {
     let title: String
     let value: String
-    var valueColor: Color = .textDark
+    var valueColor: Color = Color.textDark
     var subtitle: String? = nil
 
     var body: some View {
@@ -25,7 +25,7 @@ struct MetricCard: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.cardWhite)
+        .background(Color.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
     }

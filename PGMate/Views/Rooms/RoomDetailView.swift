@@ -42,7 +42,7 @@ struct RoomDetailView: View {
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
                                 .background(Color.primaryIndigo.opacity(0.1))
-                                .foregroundColor(.primaryIndigo)
+                                .foregroundStyle(Color.primaryIndigo)
                                 .clipShape(Capsule())
                         }
                     }
@@ -50,6 +50,7 @@ struct RoomDetailView: View {
             }
             .navigationTitle("Room \(room.roomNumber)")
             .navigationBarTitleDisplayMode(.inline)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Close") { dismiss() }

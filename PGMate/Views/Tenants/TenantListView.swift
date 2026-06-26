@@ -12,27 +12,29 @@ struct TenantListView: View {
                 // MARK: Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(Color.textSecondary)
                     TextField("Search tenants...", text: $vm.searchText)
                         .autocorrectionDisabled()
+                        .foregroundStyle(Color.textDark)
                 }
                 .padding(12)
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .background(Color.surface, in: RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                 )
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(Color.white)
+                .background(Color.surface)
 
                 Divider()
 
                 if vm.isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
+                    VStack(spacing: 10) {
+                        ProgressView().tint(Color.primaryIndigo)
+                        Text("Loading...").foregroundStyle(Color.textSecondary).font(.caption)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if vm.filteredTenants.isEmpty {
                     EmptyStateView(
                         icon: "person.2.slash.fill",
@@ -59,11 +61,11 @@ struct TenantListView: View {
             .background(Color.backgroundLight)
             .navigationTitle("Tenants")
             .navigationBarTitleDisplayMode(.large)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showAddTenant = true }) {
-                        Image(systemName: "plus")
-                            .fontWeight(.semibold)
+                        Image(systemName: "plus").fontWeight(.semibold)
                     }
                 }
             }
@@ -93,22 +95,18 @@ struct TenantRow: View {
                 Circle()
                     .fill(Color.primaryIndigo.opacity(0.12))
                     .frame(width: 48, height: 48)
-                if let photoURL = tenant.photoURL, !photoURL.isEmpty {
-                    AsyncImage(url: URL(string: photoURL)) { image in
-                        image.resizable().scaledToFill()
-                    } placeholder: {
-                        Text(tenant.initials)
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primaryIndigo)
-                    }
-                    .frame(width: 48, height: 48)
-                    .clipShape(Circle())
+                if let data = UserDefaults.standard.data(forKey: "tenant_photo_\(tenant.id)"),
+                   let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 48, height: 48)
+                        .clipShape(Circle())
                 } else {
                     Text(tenant.initials)
                         .font(.headline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.primaryIndigo)
+                        .foregroundStyle(Color.primaryIndigo)
                 }
             }
 
@@ -116,10 +114,10 @@ struct TenantRow: View {
                 Text(tenant.name)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.textDark)
+                    .foregroundStyle(Color.textDark)
                 Text("Room \(tenant.roomNumber) • \(tenant.phone)")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.textSecondary)
             }
 
             Spacer()
@@ -128,16 +126,15 @@ struct TenantRow: View {
                 StatusBadge(text: "Active", color: .successGreen)
                 Text("\(tenant.monthsStayed)mo")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.textSecondary)
             }
 
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.textSecondary)
         }
         .padding(14)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
 }

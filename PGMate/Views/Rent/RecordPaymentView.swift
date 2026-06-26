@@ -43,6 +43,7 @@ struct RecordPaymentView: View {
             }
             .navigationTitle("Record Payment")
             .navigationBarTitleDisplayMode(.inline)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }

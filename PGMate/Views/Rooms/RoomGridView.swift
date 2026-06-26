@@ -30,15 +30,17 @@ struct RoomGridView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                 }
-                .background(Color.white)
+                .background(Color.surface)
 
                 Divider()
 
                 // MARK: Room grid
                 if vm.isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
+                    VStack(spacing: 10) {
+                        ProgressView().tint(Color.primaryIndigo)
+                        Text("Loading...").foregroundStyle(Color.textSecondary).font(.caption)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if vm.filteredRooms.isEmpty {
                     EmptyStateView(
                         icon: "bed.double.fill",
@@ -54,26 +56,22 @@ struct RoomGridView: View {
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(vm.filteredRooms) { room in
                                 RoomCard(room: room)
-                                    .onTapGesture {
-                                        selectedRoom = room
-                                    }
+                                    .onTapGesture { selectedRoom = room }
                             }
                         }
                         .padding(16)
                     }
-                    .refreshable {
-                        await vm.load()
-                    }
+                    .refreshable { await vm.load() }
                 }
             }
             .background(Color.backgroundLight)
             .navigationTitle("Rooms")
             .navigationBarTitleDisplayMode(.large)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showAddRoom = true }) {
-                        Image(systemName: "plus")
-                            .fontWeight(.semibold)
+                        Image(systemName: "plus").fontWeight(.semibold)
                     }
                 }
             }
@@ -83,9 +81,7 @@ struct RoomGridView: View {
             .sheet(isPresented: $showAddRoom) {
                 AddRoomView(viewModel: vm)
             }
-            .task {
-                await vm.load()
-            }
+            .task { await vm.load() }
             .onChange(of: AuthService.shared.currentPropertyId) {
                 Task { await vm.load() }
             }
@@ -94,9 +90,9 @@ struct RoomGridView: View {
 
     func filterLabel(_ filter: RoomViewModel.RoomFilter) -> String {
         switch filter {
-        case .all: return "All (\(vm.rooms.count))"
-        case .vacant: return "Vacant (\(vm.vacantCount))"
-        case .occupied: return "Occupied (\(vm.occupiedCount))"
+        case .all:         return "All (\(vm.rooms.count))"
+        case .vacant:      return "Vacant (\(vm.vacantCount))"
+        case .occupied:    return "Occupied (\(vm.occupiedCount))"
         case .maintenance: return "Maintenance (\(vm.maintenanceCount))"
         }
     }
@@ -109,8 +105,8 @@ struct RoomCard: View {
 
     var statusColor: Color {
         switch room.status {
-        case .vacant: return .successGreen
-        case .occupied: return .primaryIndigo
+        case .vacant:      return .successGreen
+        case .occupied:    return .primaryIndigo
         case .maintenance: return .accentGold
         }
     }
@@ -121,7 +117,7 @@ struct RoomCard: View {
                 Text(room.roomNumber)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.textDark)
+                    .foregroundStyle(Color.textDark)
                 Spacer()
                 Circle()
                     .fill(statusColor)
@@ -130,29 +126,27 @@ struct RoomCard: View {
 
             Text(room.type.displayName)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.textSecondary)
 
             Spacer()
 
             Text(formatINR(room.monthlyRent) + "/mo")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.primaryIndigo)
+                .foregroundStyle(Color.primaryIndigo)
 
             Text(room.status.displayName)
                 .font(.caption2)
                 .fontWeight(.medium)
-                .foregroundColor(statusColor)
+                .foregroundStyle(statusColor)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(statusColor.opacity(0.12))
-                .clipShape(Capsule())
+                .background(statusColor.opacity(0.12), in: Capsule())
         }
         .padding(12)
         .frame(height: 120)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
         .shadow(color: statusColor.opacity(0.15), radius: 4, x: 0, y: 2)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -173,11 +167,10 @@ struct FilterChip: View {
             Text(title)
                 .font(.subheadline)
                 .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundColor(isSelected ? .white : .textDark)
+                .foregroundStyle(isSelected ? Color.textOnPrimary : Color.textDark)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(isSelected ? Color.primaryIndigo : Color.backgroundLight)
-                .clipShape(Capsule())
+                .background(isSelected ? Color.primaryIndigo : Color.surface, in: Capsule())
                 .overlay(
                     Capsule()
                         .stroke(isSelected ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)

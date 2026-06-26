@@ -14,22 +14,22 @@ struct RentBoardView: View {
                     Button(action: { vm.navigateMonth(forward: false) }) {
                         Image(systemName: "chevron.left")
                             .fontWeight(.semibold)
-                            .foregroundColor(.primaryIndigo)
+                            .foregroundStyle(Color.primaryIndigo)
                     }
                     Spacer()
                     Text(vm.monthYearString)
                         .font(.headline)
-                        .foregroundColor(.textDark)
+                        .foregroundStyle(Color.textDark)
                     Spacer()
                     Button(action: { vm.navigateMonth(forward: true) }) {
                         Image(systemName: "chevron.right")
                             .fontWeight(.semibold)
-                            .foregroundColor(.primaryIndigo)
+                            .foregroundStyle(Color.primaryIndigo)
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
-                .background(Color.white)
+                .background(Color.surface)
 
                 // MARK: Summary row
                 HStack(spacing: 12) {
@@ -44,7 +44,7 @@ struct RentBoardView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(Color.white)
+                .background(Color.surface)
 
                 Divider()
 
@@ -67,9 +67,11 @@ struct RentBoardView: View {
 
                 // MARK: Records list
                 if vm.isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
+                    VStack(spacing: 10) {
+                        ProgressView().tint(Color.primaryIndigo)
+                        Text("Loading...").foregroundStyle(Color.textSecondary).font(.caption)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if vm.filteredRecords.isEmpty {
                     EmptyStateView(
                         icon: "indianrupeesign.circle",
@@ -81,9 +83,7 @@ struct RentBoardView: View {
                             RentRecordRow(record: record)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
-                                    if record.status != .paid {
-                                        selectedRecord = record
-                                    }
+                                    if record.status != .paid { selectedRecord = record }
                                 }
                                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                                 .listRowSeparator(.hidden)
@@ -97,11 +97,11 @@ struct RentBoardView: View {
             .background(Color.backgroundLight)
             .navigationTitle("Rent Board")
             .navigationBarTitleDisplayMode(.inline)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showRentReminder = true }) {
                         Image(systemName: "bell.fill")
-                            .foregroundColor(.primaryIndigo)
                     }
                 }
             }
@@ -120,8 +120,8 @@ struct RentBoardView: View {
 
     func filterLabel(_ filter: RentViewModel.RentFilter) -> String {
         switch filter {
-        case .all: return "All (\(vm.rentRecords.count))"
-        case .paid: return "Paid (\(vm.paidCount))"
+        case .all:     return "All (\(vm.rentRecords.count))"
+        case .paid:    return "Paid (\(vm.paidCount))"
         case .pending: return "Pending (\(vm.pendingCount))"
         case .overdue: return "Overdue (\(vm.overdueCount))"
         }
@@ -139,14 +139,14 @@ struct RentRecordRow: View {
                 Text(record.tenantName)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.textDark)
+                    .foregroundStyle(Color.textDark)
                 Text("Room \(record.roomNumber)")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.textSecondary)
                 if record.status == .paid, let paidDate = record.paidDate {
                     Text("Paid \(paidDate.formatted(.dateTime.day().month().year()))")
                         .font(.caption2)
-                        .foregroundColor(.successGreen)
+                        .foregroundStyle(Color.successGreen)
                 }
             }
 
@@ -156,7 +156,7 @@ struct RentRecordRow: View {
                 Text(formatINR(record.amount))
                     .font(.subheadline)
                     .fontWeight(.bold)
-                    .foregroundColor(.textDark)
+                    .foregroundStyle(Color.textDark)
                 StatusBadge(
                     text: record.status.displayName,
                     color: record.status.color)
@@ -165,12 +165,11 @@ struct RentRecordRow: View {
             if record.status != .paid {
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.textSecondary)
             }
         }
         .padding(14)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
 }
@@ -186,17 +185,16 @@ struct SmallMetricCard: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.textSecondary)
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundColor(color)
+                .foregroundStyle(color)
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 10))
     }
 }

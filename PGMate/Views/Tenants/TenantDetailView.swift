@@ -108,6 +108,7 @@ struct TenantDetailView: View {
             }
             .navigationTitle("Tenant")
             .navigationBarTitleDisplayMode(.inline)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Close") { dismiss() }

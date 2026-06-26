@@ -37,7 +37,7 @@ struct SignInView: View {
                         Text("PGMate")
                             .font(.title)
                             .fontWeight(.bold)
-                            .foregroundColor(.textDark)
+                            .foregroundStyle(Color.textDark)
 
                         Text("PG Management, simplified.")
                             .font(.subheadline)
@@ -100,7 +100,7 @@ struct SignInView: View {
                                 .foregroundColor(.secondary)
                             Text("Sign Up")
                                 .fontWeight(.semibold)
-                                .foregroundColor(.primaryIndigo)
+                                .foregroundStyle(Color.primaryIndigo)
                         }
                         .font(.subheadline)
                     }

@@ -12,7 +12,33 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         #else
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
         #endif
+        configureTabBarAppearance()
         return true
+    }
+
+    private func configureTabBarAppearance() {
+        let navyBlue = UIColor(Color.primaryIndigo)
+        let gold     = UIColor(Color.accentGold)
+
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = navyBlue
+
+        // Selected — gold icon + label
+        appearance.stackedLayoutAppearance.selected.iconColor = gold
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .foregroundColor: gold
+        ]
+
+        // Unselected — white at 70%
+        let dimWhite = UIColor.white.withAlphaComponent(0.7)
+        appearance.stackedLayoutAppearance.normal.iconColor = dimWhite
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .foregroundColor: dimWhite
+        ]
+
+        UITabBar.appearance().standardAppearance  = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 }
 
@@ -27,6 +53,7 @@ struct PGMateApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .tint(Color.primaryIndigo)
         }
     }
 

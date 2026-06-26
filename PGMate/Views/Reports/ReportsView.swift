@@ -34,6 +34,7 @@ struct ReportsView: View {
                 }
             }
             .navigationTitle("Reports")
+            .navyNavBar()
             .task {
                 if let pid = auth.currentPropertyId {
                     await viewModel.fetchReports(propertyId: pid)

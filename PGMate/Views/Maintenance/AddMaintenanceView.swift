@@ -52,6 +52,7 @@ struct AddMaintenanceView: View {
             }
             .navigationTitle("Add Task")
             .navigationBarTitleDisplayMode(.inline)
+            .navyNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }

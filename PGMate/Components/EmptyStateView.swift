@@ -13,7 +13,7 @@ struct EmptyStateView: View {
                 .foregroundColor(iconColor.opacity(0.3))
             Text(title)
                 .font(.headline)
-                .foregroundColor(.textDark)
+                .foregroundStyle(Color.textDark)
             Text(subtitle)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
