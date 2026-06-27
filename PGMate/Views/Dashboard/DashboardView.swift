@@ -180,7 +180,7 @@ struct DashboardView: View {
                         }
                         .padding(.bottom, 20)
                     }
-                    .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
+                    .contentMargins(.bottom, 80, for: .scrollContent)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.bgPrimary)
                     .refreshable { await vm.load() }
@@ -312,7 +312,7 @@ struct OverdueRentView: View {
                 .listStyle(.plain)
                 .background(Color.bgSecondary.ignoresSafeArea())
                 .scrollContentBackground(.hidden)
-                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
+                .contentMargins(.bottom, 80, for: .scrollContent)
             }
         }
         .background(Color.bgSecondary.ignoresSafeArea())
@@ -358,7 +358,7 @@ struct OpenMaintenanceView: View {
                     }
                     .padding(16)
                 }
-                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
+                .contentMargins(.bottom, 80, for: .scrollContent)
                 .background(Color.bgSecondary.ignoresSafeArea())
             }
         }

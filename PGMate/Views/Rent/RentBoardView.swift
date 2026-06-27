@@ -95,7 +95,7 @@ struct RentBoardView: View {
                     .listStyle(.plain)
                     .background(Color.bgSecondary.ignoresSafeArea())
                     .scrollContentBackground(.hidden)
-                    .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
+                    .contentMargins(.bottom, 80, for: .scrollContent)
                     .refreshable { await vm.load() }
                 }
             }

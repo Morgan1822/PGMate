@@ -11,7 +11,7 @@ struct StatusBadge: View {
             .foregroundStyle(color)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(color.opacity(0.12))
+            .background(color.opacity(0.15))
             .clipShape(Capsule())
     }
 }

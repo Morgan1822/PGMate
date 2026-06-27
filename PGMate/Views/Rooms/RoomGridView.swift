@@ -63,7 +63,7 @@ struct RoomGridView: View {
                         }
                         .padding(16)
                     }
-                    .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
+                    .contentMargins(.bottom, 80, for: .scrollContent)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.bgSecondary)
                     .refreshable { await vm.load() }
@@ -117,7 +117,7 @@ struct RoomCard: View {
     var statusColor: Color {
         switch room.status {
         case .vacant:      return .positive
-        case .occupied:    return Color(hex: "#4A90D9")
+        case .occupied:    return Color(hex: "#5B8FE8")
         case .maintenance: return .warning
         }
     }

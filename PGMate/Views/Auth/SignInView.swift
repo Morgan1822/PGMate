@@ -92,7 +92,7 @@ struct SignInView: View {
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 52)
                                 .background(Color.gold)
-                                .foregroundStyle(Color(hex: "#1A3566"))
+                                .foregroundStyle(Color.navyDark)
                                 .clipShape(RoundedRectangle(cornerRadius: 14))
                             }
                             .disabled(isLoading || email.isEmpty || password.isEmpty)
