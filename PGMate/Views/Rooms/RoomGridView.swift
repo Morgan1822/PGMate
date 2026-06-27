@@ -78,7 +78,9 @@ struct RoomGridView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showAddRoom = true }) {
-                        Image(systemName: "plus").fontWeight(.semibold)
+                        Image(systemName: "plus")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.gold)
                     }
                 }
             }

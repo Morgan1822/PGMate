@@ -5,10 +5,58 @@ struct MaintenanceBoardView: View {
     @State private var selectedTask: MaintenanceTask?
     @State private var showAddTask = false
     @State private var expandedSections: Set<MaintenanceTask.TaskStatus> = Set(MaintenanceTask.TaskStatus.allCases)
+    @State private var selectedFilter: MaintenanceFilter = .all
+
+    enum MaintenanceFilter: CaseIterable, Equatable {
+        case all, open, inProgress, done
+
+        func label(openCount: Int, inProgressCount: Int, doneCount: Int, totalCount: Int) -> String {
+            switch self {
+            case .all:        return "All (\(totalCount))"
+            case .open:       return "Open (\(openCount))"
+            case .inProgress: return "In Progress (\(inProgressCount))"
+            case .done:       return "Done (\(doneCount))"
+            }
+        }
+    }
+
+    private var filteredTasks: [MaintenanceTask] {
+        switch selectedFilter {
+        case .all:        return vm.tasks
+        case .open:       return vm.openTasks
+        case .inProgress: return vm.inProgressTasks
+        case .done:       return vm.doneTasks
+        }
+    }
 
     var body: some View {
         NavigationStack {
-            Group {
+            VStack(spacing: 0) {
+                // MARK: Filter chips
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(MaintenanceFilter.allCases, id: \.self) { filter in
+                            FilterChip(
+                                title: filter.label(
+                                    openCount: vm.openTasks.count,
+                                    inProgressCount: vm.inProgressTasks.count,
+                                    doneCount: vm.doneTasks.count,
+                                    totalCount: vm.tasks.count
+                                ),
+                                isSelected: selectedFilter == filter
+                            ) {
+                                selectedFilter = filter
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                }
+                .background(Color.bgPrimary)
+
+                Divider()
+                    .background(Color.textTertiary.opacity(0.3))
+
                 if vm.isLoading && vm.tasks.isEmpty {
                     ProgressView()
                         .tint(Color.gold)
@@ -16,7 +64,7 @@ struct MaintenanceBoardView: View {
                         .background(Color.bgPrimary.ignoresSafeArea())
                 } else if vm.tasks.isEmpty {
                     MaintenanceEmptyStateView()
-                } else {
+                } else if selectedFilter == .all {
                     ScrollView(.vertical, showsIndicators: true) {
                         VStack(spacing: 16) {
                             MaintenanceSectionView(
@@ -26,7 +74,6 @@ struct MaintenanceBoardView: View {
                                 onToggle: { toggleSection(.open) },
                                 onTapTask: { selectedTask = $0 }
                             )
-
                             MaintenanceSectionView(
                                 status: .inProgress,
                                 tasks: vm.inProgressTasks,
@@ -34,7 +81,6 @@ struct MaintenanceBoardView: View {
                                 onToggle: { toggleSection(.inProgress) },
                                 onTapTask: { selectedTask = $0 }
                             )
-
                             MaintenanceSectionView(
                                 status: .done,
                                 tasks: vm.doneTasks,
@@ -42,6 +88,25 @@ struct MaintenanceBoardView: View {
                                 onToggle: { toggleSection(.done) },
                                 onTapTask: { selectedTask = $0 }
                             )
+                        }
+                        .padding(16)
+                    }
+                    .background(Color.bgSecondary.ignoresSafeArea())
+                } else {
+                    ScrollView(.vertical, showsIndicators: true) {
+                        VStack(spacing: 12) {
+                            if filteredTasks.isEmpty {
+                                Text("No tasks")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.textSecondary)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding(.top, 40)
+                            } else {
+                                ForEach(filteredTasks) { task in
+                                    TaskCardView(task: task)
+                                        .onTapGesture { selectedTask = task }
+                                }
+                            }
                         }
                         .padding(16)
                     }

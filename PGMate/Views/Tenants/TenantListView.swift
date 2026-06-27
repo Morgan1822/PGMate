@@ -69,7 +69,9 @@ struct TenantListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showAddTenant = true }) {
-                        Image(systemName: "plus").fontWeight(.semibold)
+                        Image(systemName: "plus")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.gold)
                     }
                 }
             }

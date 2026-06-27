@@ -106,6 +106,7 @@ struct RentBoardView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showRentReminder = true }) {
                         Image(systemName: "bell.fill")
+                            .foregroundStyle(Color.gold)
                     }
                 }
             }
