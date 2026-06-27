@@ -154,8 +154,10 @@ struct DashboardView: View {
                         }
                         .padding(.bottom, 20)
                     }
-                    .background(Color.bgPrimary.ignoresSafeArea())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.bgPrimary)
                     .refreshable { await vm.load() }
+                    .ignoresSafeArea(.container, edges: .bottom)
                 }
             }
             .navigationTitle("Dashboard")

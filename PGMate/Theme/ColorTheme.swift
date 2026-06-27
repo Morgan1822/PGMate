@@ -13,7 +13,7 @@ extension Color {
     static let navyLight    = Color(hex: "#2E5799")
 
     // MARK: Gold palette (static)
-    static let gold         = Color(hex: "#E8A33D")
+    static let gold         = Color(hex: "#F5B942")
     static let goldLight    = Color(hex: "#F5C168")
 
     // MARK: Adaptive backgrounds
@@ -88,10 +88,10 @@ extension Color {
     static let textOnGold = Color(hex: "#0F2447")
 
     // MARK: Status / semantic
-    static let positive = Color(hex: "#2E7D52")   // income, paid
+    static let positive = Color(hex: "#3DAA6B")   // income, paid
     static let negative = Color(hex: "#C0392B")   // expense, overdue
-    static let pending  = Color(hex: "#E8A33D")   // pending / warning (reuses gold)
-    static let warning  = Color(hex: "#D97706")   // maintenance / caution
+    static let pending  = Color(hex: "#F5B942")   // pending / warning (reuses gold)
+    static let warning  = Color(hex: "#F59E0B")   // maintenance / caution
 
     // MARK: Legacy aliases (kept for backwards compat with any remaining usages)
     static let primaryIndigo        = navyPrimary

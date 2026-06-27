@@ -63,12 +63,15 @@ struct RoomGridView: View {
                         }
                         .padding(16)
                     }
-                    .background(Color.bgSecondary.ignoresSafeArea())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.bgSecondary)
                     .refreshable { await vm.load() }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.bgPrimary.ignoresSafeArea())
+            .background(Color.bgSecondary.ignoresSafeArea())
+            .ignoresSafeArea(.all, edges: .bottom)
+            .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("Rooms")
             .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
@@ -110,7 +113,7 @@ struct RoomCard: View {
     var statusColor: Color {
         switch room.status {
         case .vacant:      return .positive
-        case .occupied:    return .navyLight
+        case .occupied:    return Color(hex: "#4A90D9")
         case .maintenance: return .warning
         }
     }
@@ -142,7 +145,7 @@ struct RoomCard: View {
             Text(formatINR(room.monthlyRent) + "/mo")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundStyle(Color.navyPrimary)
+                .foregroundStyle(Color.textPrimary)
                 .padding(.bottom, 5)
 
             // Status pill — always at bottom, left aligned, clipped inside card

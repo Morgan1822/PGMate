@@ -88,8 +88,11 @@ struct PGMateApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .tint(Color.gold)
+            ZStack {
+                Color.bgPrimary.ignoresSafeArea(.all)
+                RootView()
+                    .tint(Color.gold)
+            }
         }
     }
 
