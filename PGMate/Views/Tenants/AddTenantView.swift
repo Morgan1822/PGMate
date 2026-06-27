@@ -1,4 +1,5 @@
 import SwiftUI
+import Contacts
 
 struct AddTenantView: View {
     let viewModel: TenantViewModel
@@ -27,6 +28,7 @@ struct AddTenantView: View {
     @State private var vacantRooms: [Room] = []
     @State private var isLoading = false
     @State private var errorMessage = ""
+    @State private var showContactSavedToast = false
 
     var body: some View {
         NavigationStack {
@@ -216,6 +218,23 @@ struct AddTenantView: View {
                 ImagePicker(selectedImage: $proofImage, sourceType: .photoLibrary)
             }
             .task { await loadVacantRooms() }
+            .overlay(alignment: .top) {
+                if showContactSavedToast {
+                    HStack(spacing: 8) {
+                        Image(systemName: "person.crop.circle.badge.checkmark")
+                        Text("Added to Contacts")
+                            .fontWeight(.semibold)
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.positive, in: Capsule())
+                    .padding(.top, 12)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .animation(.spring(response: 0.4), value: showContactSavedToast)
         }
     }
 
@@ -275,6 +294,11 @@ struct AddTenantView: View {
         Task {
             do {
                 try await viewModel.addTenant(tenant, photoData: nil)
+                await MainActor.run {
+                    saveToContacts(tenant)
+                    showContactSavedToast = true
+                }
+                try? await Task.sleep(for: .seconds(1.5))
                 await MainActor.run { dismiss() }
             } catch {
                 await MainActor.run {
@@ -282,6 +306,25 @@ struct AddTenantView: View {
                     isLoading = false
                 }
             }
+        }
+    }
+
+    private func saveToContacts(_ tenant: Tenant) {
+        let store = CNContactStore()
+        store.requestAccess(for: .contacts) { granted, _ in
+            guard granted else { return }
+            let contact = CNMutableContact()
+            contact.givenName = tenant.name
+            contact.phoneNumbers = [
+                CNLabeledValue(label: CNLabelPhoneNumberMain,
+                               value: CNPhoneNumber(stringValue: tenant.phone))
+            ]
+            let propName = AuthService.shared.propertyName
+            contact.organizationName = propName.isEmpty ? "Hostel" : "\(propName) Hostel"
+            contact.note = "Tenant ID: \(tenant.id)"
+            let request = CNSaveRequest()
+            request.add(contact, toContainerWithIdentifier: nil)
+            try? store.execute(request)
         }
     }
 }

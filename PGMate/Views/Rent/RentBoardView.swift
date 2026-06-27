@@ -265,11 +265,17 @@ struct RentRecordRow: View {
 
             if let action = whatsAppAction {
                 Button(action: action) {
-                    Image(systemName: "message.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color(red: 0.07, green: 0.53, blue: 0.32))
+                    Image(systemName: "bubble.right.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color(red: 0.25, green: 0.88, blue: 0.31))
                 }
+                .frame(width: 32, height: 32)
+                .background(Color(red: 0.25, green: 0.88, blue: 0.31).opacity(0.10),
+                            in: RoundedRectangle(cornerRadius: 8))
                 .buttonStyle(.plain)
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(Color.textTertiary)
             } else if record.status != .paid {
                 Image(systemName: "chevron.right")
                     .font(.caption)

@@ -20,23 +20,26 @@ struct RecordPaymentView: View {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundStyle(Color.gold)
                                 .font(.title3)
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("This tenant has overdue rent")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(Color.textPrimary)
-                                Button(action: sendWhatsAppReminder) {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "message.fill")
-                                            .font(.caption)
-                                        Text("Send WhatsApp Reminder")
-                                            .font(.caption)
-                                            .fontWeight(.semibold)
-                                    }
-                                    .foregroundStyle(Color(red: 0.07, green: 0.53, blue: 0.32))
-                                }
-                            }
+                            Text("This tenant has overdue rent")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.textPrimary)
                             Spacer()
+                            Button(action: sendWhatsAppReminder) {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "bubble.right.fill")
+                                        .font(.caption2)
+                                    Text("Remind via WhatsApp")
+                                        .font(.caption2)
+                                        .fontWeight(.semibold)
+                                }
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color(red: 0.25, green: 0.88, blue: 0.31),
+                                            in: Capsule())
+                            }
+                            .buttonStyle(.plain)
                         }
                         .padding(.vertical, 4)
                     }
