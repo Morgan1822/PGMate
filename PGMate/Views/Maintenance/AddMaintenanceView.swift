@@ -9,13 +9,19 @@ struct AddMaintenanceView: View {
     @State private var priority = MaintenanceTask.Priority.medium
     @State private var estimatedCost = ""
     @State private var isLoading = false
+    @State private var titleError = ""
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Task Info") {
-                    TextField("Title (required)", text: $title)
-                        .foregroundStyle(Color.textPrimary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        TextField("Title (required)", text: $title)
+                            .foregroundStyle(Color.textPrimary)
+                        if !titleError.isEmpty {
+                            Text(titleError).font(.caption).foregroundStyle(Color.negative)
+                        }
+                    }
 
                     ZStack(alignment: .topLeading) {
                         if description.isEmpty {
@@ -85,6 +91,11 @@ struct AddMaintenanceView: View {
     }
 
     func saveTask() {
+        titleError = ""
+        if Validators.validateName(title) != nil {
+            titleError = "Task title is required"
+            return
+        }
         guard let propertyId = AuthService.shared.currentPropertyId else { return }
         isLoading = true
 

@@ -187,6 +187,7 @@ struct DashboardView: View {
                     .ignoresSafeArea(.container, edges: .bottom)
                 }
             }
+            .animation(.easeInOut(duration: 0.35), value: vm.isLoading)
             .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
@@ -204,14 +205,76 @@ struct DashboardView: View {
     }
 
     private var loadingView: some View {
-        VStack(spacing: 10) {
-            ProgressView()
-                .tint(Color.gold)
-            Text("Loading...")
-                .foregroundStyle(Color.textSecondary)
-                .font(.caption)
+        ScrollView {
+            VStack(spacing: 20) {
+
+                // Header skeleton
+                VStack(alignment: .leading, spacing: 8) {
+                    SkeletonRect(height: 26, width: 220)
+                    SkeletonRect(height: 16, width: 140)
+                    SkeletonRect(height: 12, width: 160)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
+                // Occupancy ring skeleton
+                VStack(spacing: 16) {
+                    Circle()
+                        .fill(Color.gray.opacity(0.13))
+                        .frame(width: 140, height: 140)
+                    SkeletonRect(height: 20, width: 150)
+                    HStack(spacing: 16) {
+                        SkeletonRect(height: 24, width: 90, cornerRadius: 12)
+                        SkeletonRect(height: 24, width: 110, cornerRadius: 12)
+                    }
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity)
+                .background(Color.surface, in: RoundedRectangle(cornerRadius: 16))
+                .padding(.horizontal, 20)
+
+                // Financial cards skeleton
+                HStack(spacing: 12) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        VStack(alignment: .leading, spacing: 6) {
+                            SkeletonRect(height: 11, width: 55)
+                            SkeletonRect(height: 22, width: 75)
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                .padding(.horizontal, 20)
+
+                // Recent Activity skeleton
+                VStack(alignment: .leading, spacing: 12) {
+                    SkeletonRect(height: 18, width: 130)
+                    VStack(spacing: 0) {
+                        ForEach(0..<4, id: \.self) { i in
+                            HStack(spacing: 12) {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.13))
+                                    .frame(width: 40, height: 40)
+                                VStack(alignment: .leading, spacing: 5) {
+                                    SkeletonRect(height: 14, width: CGFloat([170, 140, 180, 150][i]))
+                                    SkeletonRect(height: 11, width: CGFloat([90, 110, 80, 100][i]))
+                                }
+                                Spacer()
+                                SkeletonRect(height: 11, width: 40)
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                        }
+                    }
+                    .background(Color.surface, in: RoundedRectangle(cornerRadius: 14))
+                }
+                .padding(.horizontal, 20)
+            }
+            .padding(.bottom, 20)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .allowsHitTesting(false)
         .background(Color.bgPrimary.ignoresSafeArea())
     }
 }
@@ -379,5 +442,25 @@ struct OpenMaintenanceView: View {
         .sheet(item: $selectedTask) { task in
             TaskDetailSheet(task: task, viewModel: vm)
         }
+    }
+}
+
+// MARK: - SkeletonRect
+
+struct SkeletonRect: View {
+    let height: CGFloat
+    var width: CGFloat? = nil
+    var cornerRadius: CGFloat = 6
+    @State private var pulse = false
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius)
+            .fill(Color.gray.opacity(pulse ? 0.22 : 0.11))
+            .frame(width: width, height: height)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.85).repeatForever(autoreverses: true)) {
+                    pulse = true
+                }
+            }
     }
 }

@@ -214,12 +214,20 @@ struct SignInView: View {
     // MARK: - Sign In Action
 
     private func signIn() async {
+        if let err = Validators.validateEmail(email) {
+            errorMessage = err.localizedDescription
+            return
+        }
+        if let err = Validators.validatePassword(password) {
+            errorMessage = err.localizedDescription
+            return
+        }
         isLoading = true
         errorMessage = nil
         do {
             try await auth.signIn(email: email, password: password)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ValidationError.fromAuthError(error).localizedDescription
         }
         isLoading = false
     }

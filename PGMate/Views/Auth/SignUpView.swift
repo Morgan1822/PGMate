@@ -12,12 +12,17 @@ struct SignUpView: View {
     @State private var errorMessage: String?
     @State private var showPassword = false
     @State private var showConfirmPassword = false
+    @State private var nameError = ""
+    @State private var emailError = ""
+    @State private var passwordError = ""
+    @State private var confirmPasswordError = ""
+    @State private var propertyNameError = ""
 
     private var auth: AuthService { AuthService.shared }
 
     private var passwordsMatch: Bool { password == confirmPassword }
     private var isFormValid: Bool {
-        !name.isEmpty && email.contains("@") && password.count >= 6
+        !name.isEmpty && !email.isEmpty && password.count >= 8
             && passwordsMatch && !propertyName.isEmpty
     }
 
@@ -51,46 +56,61 @@ struct SignUpView: View {
 
                     // MARK: Fields
                     VStack(spacing: 14) {
-                        authField(
-                            icon: "person.fill",
-                            placeholder: "Full Name",
-                            text: $name,
-                            contentType: .name,
-                            autocap: true
-                        )
+                        VStack(spacing: 4) {
+                            authField(
+                                icon: "person.fill",
+                                placeholder: "Full Name",
+                                text: $name,
+                                contentType: .name,
+                                autocap: true
+                            )
+                            errorText(nameError)
+                        }
 
-                        authField(
-                            icon: "envelope.fill",
-                            placeholder: "Email Address",
-                            text: $email,
-                            keyboard: .emailAddress,
-                            contentType: .emailAddress,
-                            autocap: false
-                        )
+                        VStack(spacing: 4) {
+                            authField(
+                                icon: "envelope.fill",
+                                placeholder: "Email Address",
+                                text: $email,
+                                keyboard: .emailAddress,
+                                contentType: .emailAddress,
+                                autocap: false
+                            )
+                            errorText(emailError)
+                        }
 
-                        authPasswordField(
-                            placeholder: "Password",
-                            text: $password,
-                            showPassword: $showPassword,
-                            contentType: .newPassword
-                        )
+                        VStack(spacing: 4) {
+                            authPasswordField(
+                                placeholder: "Password",
+                                text: $password,
+                                showPassword: $showPassword,
+                                contentType: .newPassword
+                            )
+                            errorText(passwordError)
+                        }
 
-                        authPasswordField(
-                            placeholder: "Confirm Password",
-                            text: $confirmPassword,
-                            showPassword: $showConfirmPassword,
-                            contentType: .newPassword
-                        )
+                        VStack(spacing: 4) {
+                            authPasswordField(
+                                placeholder: "Confirm Password",
+                                text: $confirmPassword,
+                                showPassword: $showConfirmPassword,
+                                contentType: .newPassword
+                            )
+                            errorText(confirmPasswordError)
+                        }
 
-                        authField(
-                            icon: "building.2.fill",
-                            placeholder: "Property Name",
-                            text: $propertyName,
-                            contentType: .organizationName,
-                            autocap: true
-                        )
+                        VStack(spacing: 4) {
+                            authField(
+                                icon: "building.2.fill",
+                                placeholder: "Property Name",
+                                text: $propertyName,
+                                contentType: .organizationName,
+                                autocap: true
+                            )
+                            errorText(propertyNameError)
+                        }
 
-                        // Error pill
+                        // Firebase-level error pill
                         if let error = errorMessage {
                             HStack(spacing: 8) {
                                 Image(systemName: "exclamationmark.circle.fill")
@@ -153,6 +173,17 @@ struct SignUpView: View {
     }
 
     // MARK: - Field builders
+
+    @ViewBuilder
+    private func errorText(_ message: String) -> some View {
+        if !message.isEmpty {
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(Color(red: 1.0, green: 0.45, blue: 0.45))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 4)
+        }
+    }
 
     @ViewBuilder
     private func authField(
@@ -239,27 +270,34 @@ struct SignUpView: View {
     // MARK: - Sign Up Action
 
     private func validate() -> Bool {
-        if name.trimmingCharacters(in: .whitespaces).isEmpty {
-            errorMessage = "Full name is required."
-            return false
+        nameError = ""
+        emailError = ""
+        passwordError = ""
+        confirmPasswordError = ""
+        propertyNameError = ""
+
+        var valid = true
+        if let err = Validators.validateName(name) {
+            nameError = err.localizedDescription
+            valid = false
         }
-        if !email.contains("@") {
-            errorMessage = "Enter a valid email address."
-            return false
+        if let err = Validators.validateEmail(email) {
+            emailError = err.localizedDescription
+            valid = false
         }
-        if password.count < 6 {
-            errorMessage = "Password must be at least 6 characters."
-            return false
+        if let err = Validators.validatePassword(password) {
+            passwordError = err.localizedDescription
+            valid = false
         }
-        if !passwordsMatch {
-            errorMessage = "Passwords do not match."
-            return false
+        if let err = Validators.validatePasswordMatch(password, confirmPassword) {
+            confirmPasswordError = err.localizedDescription
+            valid = false
         }
         if propertyName.trimmingCharacters(in: .whitespaces).isEmpty {
-            errorMessage = "Property name is required."
-            return false
+            propertyNameError = ValidationError.emptyPropertyName.localizedDescription
+            valid = false
         }
-        return true
+        return valid
     }
 
     private func signUp() async {
@@ -274,7 +312,12 @@ struct SignUpView: View {
                 propertyName: propertyName
             )
         } catch {
-            errorMessage = error.localizedDescription
+            let vErr = ValidationError.fromAuthError(error)
+            if case .userAlreadyExists = vErr {
+                emailError = vErr.localizedDescription
+            } else {
+                errorMessage = vErr.localizedDescription
+            }
         }
         isLoading = false
     }

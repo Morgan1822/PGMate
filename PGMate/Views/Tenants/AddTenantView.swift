@@ -29,6 +29,8 @@ struct AddTenantView: View {
     @State private var isLoading = false
     @State private var errorMessage = ""
     @State private var showContactSavedToast = false
+    @State private var nameError = ""
+    @State private var phoneError = ""
 
     var body: some View {
         NavigationStack {
@@ -144,9 +146,19 @@ struct AddTenantView: View {
 
                 // MARK: Personal details
                 Section("Personal Details") {
-                    TextField("Full Name", text: $name)
-                    TextField("Phone Number", text: $phone)
-                        .keyboardType(.phonePad)
+                    VStack(alignment: .leading, spacing: 4) {
+                        TextField("Full Name", text: $name)
+                        if !nameError.isEmpty {
+                            Text(nameError).font(.caption).foregroundStyle(Color.negative)
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        TextField("Phone Number", text: $phone)
+                            .keyboardType(.phonePad)
+                        if !phoneError.isEmpty {
+                            Text(phoneError).font(.caption).foregroundStyle(Color.negative)
+                        }
+                    }
                     TextField("Email", text: $email)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
@@ -256,6 +268,16 @@ struct AddTenantView: View {
     }
 
     func saveTenant() {
+        nameError = ""
+        phoneError = ""
+        if let err = Validators.validateName(name) {
+            nameError = err.localizedDescription
+        }
+        if let err = Validators.validatePhoneNumber(phone) {
+            phoneError = err.localizedDescription
+        }
+        guard nameError.isEmpty && phoneError.isEmpty else { return }
+
         guard let room = selectedRoom,
               let rent = Double(monthlyRent),
               let deposit = Double(depositAmount),
