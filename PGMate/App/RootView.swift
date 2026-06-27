@@ -2,16 +2,27 @@ import SwiftUI
 
 struct RootView: View {
     @State private var auth = AuthService.shared
+    @State private var showSplash = true
 
     var body: some View {
-        Group {
-            if auth.isAuthenticated {
-                MainTabView()
-            } else {
-                SignInView()
+        if showSplash {
+            SplashScreenView()
+                .task {
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        showSplash = false
+                    }
+                }
+        } else {
+            Group {
+                if auth.isAuthenticated {
+                    MainTabView()
+                } else {
+                    SignInView()
+                }
             }
+            .animation(.easeInOut(duration: 0.3), value: auth.isAuthenticated)
         }
-        .animation(.easeInOut(duration: 0.3), value: auth.isAuthenticated)
     }
 }
 

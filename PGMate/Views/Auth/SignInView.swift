@@ -6,142 +6,96 @@ struct SignInView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showSignUp = false
+    @State private var showPassword = false
 
     private var auth: AuthService { AuthService.shared }
 
     var body: some View {
         NavigationStack {
             ZStack {
-                // Full-screen gradient background
-                LinearGradient(
-                    colors: [Color.navyDark, Color.navyPrimary, Color.navyLight],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                Color(hex: "#1A3566").ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 36) {
-                        // MARK: Logo
-                        VStack(spacing: 14) {
-                            ZStack {
-                                if UIImage(named: "PGMateLogo") != nil {
-                                    Image("PGMateLogo")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 90, height: 90)
-                                        .clipShape(RoundedRectangle(cornerRadius: 22))
-                                        .shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 6)
-                                } else {
-                                    RoundedRectangle(cornerRadius: 22)
-                                        .fill(Color.white.opacity(0.15))
-                                        .frame(width: 90, height: 90)
-                                        .overlay(
-                                            Image(systemName: "building.2.fill")
-                                                .font(.system(size: 40))
-                                                .foregroundStyle(Color.gold)
-                                        )
-                                        .shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 6)
-                                }
-                            }
+                    VStack(spacing: 0) {
+
+                        // MARK: Logo + Branding
+                        VStack(spacing: 10) {
+                            Image("PGMateLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
 
                             Text("PGMate")
-                                .font(.system(size: 32, weight: .bold))
+                                .font(.title2)
+                                .fontWeight(.bold)
                                 .foregroundStyle(Color.white)
 
-                            Text("PG Management, simplified.")
+                            Text("Smart PG Management")
                                 .font(.subheadline)
-                                .foregroundStyle(Color.white.opacity(0.7))
+                                .foregroundStyle(Color.gold)
                         }
                         .padding(.top, 60)
+                        .padding(.bottom, 40)
 
-                        // MARK: Form card
-                        VStack(spacing: 16) {
-                            // Email field
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("Email")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(Color.white.opacity(0.8))
+                        // MARK: Fields
+                        VStack(spacing: 14) {
+                            authField(
+                                icon: "envelope.fill",
+                                placeholder: "Email Address",
+                                text: $email,
+                                keyboard: .emailAddress,
+                                contentType: .emailAddress,
+                                autocap: false
+                            )
 
-                                TextField("you@example.com", text: $email)
-                                    .keyboardType(.emailAddress)
-                                    .textContentType(.emailAddress)
-                                    .autocapitalization(.none)
-                                    .foregroundStyle(Color.white)
-                                    .tint(Color.gold)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 14)
-                                    .background(Color.white.opacity(0.15))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                                    )
-                            }
+                            authPasswordField(
+                                placeholder: "Password",
+                                text: $password,
+                                showPassword: $showPassword,
+                                contentType: .password
+                            )
 
-                            // Password field
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("Password")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(Color.white.opacity(0.8))
-
-                                SecureField("••••••••", text: $password)
-                                    .textContentType(.password)
-                                    .foregroundStyle(Color.white)
-                                    .tint(Color.gold)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 14)
-                                    .background(Color.white.opacity(0.15))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                                    )
-                            }
-
-                            // Error message
+                            // Error pill
                             if let error = errorMessage {
-                                Text(error)
-                                    .font(.caption)
-                                    .foregroundStyle(Color.negative)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 4)
+                                HStack(spacing: 8) {
+                                    Image(systemName: "exclamationmark.circle.fill")
+                                        .font(.caption)
+                                    Text(error)
+                                        .font(.caption)
+                                        .multilineTextAlignment(.leading)
+                                }
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.negative, in: RoundedRectangle(cornerRadius: 10))
                             }
 
                             // Sign In button
                             Button {
                                 Task { await signIn() }
                             } label: {
-                                HStack {
+                                Group {
                                     if isLoading {
-                                        ProgressView()
-                                            .tint(Color.navyDark)
+                                        ProgressView().tint(Color(hex: "#1A3566"))
                                     } else {
                                         Text("Sign In")
-                                            .fontWeight(.bold)
-                                            .font(.system(size: 17))
+                                            .font(.system(size: 17, weight: .bold))
                                     }
                                 }
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
+                                .frame(height: 52)
                                 .background(Color.gold)
-                                .foregroundStyle(Color.textOnGold)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .shadow(color: Color.gold.opacity(0.4), radius: 8, x: 0, y: 4)
+                                .foregroundStyle(Color(hex: "#1A3566"))
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
                             }
                             .disabled(isLoading || email.isEmpty || password.isEmpty)
                             .opacity(email.isEmpty || password.isEmpty ? 0.6 : 1)
-                            .padding(.top, 8)
+                            .padding(.top, 4)
                         }
-                        .padding(24)
-                        .background(Color.white.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                        )
+                        .padding(.horizontal, 24)
 
                         // Sign Up link
                         Button {
@@ -156,10 +110,10 @@ struct SignInView: View {
                             }
                             .font(.subheadline)
                         }
+                        .padding(.top, 32)
 
                         Spacer(minLength: 40)
                     }
-                    .padding(.horizontal, 24)
                 }
             }
             .navigationDestination(isPresented: $showSignUp) {
@@ -168,6 +122,92 @@ struct SignInView: View {
             .navigationBarHidden(true)
         }
     }
+
+    // MARK: - Field builders
+
+    @ViewBuilder
+    private func authField(
+        icon: String,
+        placeholder: String,
+        text: Binding<String>,
+        keyboard: UIKeyboardType = .default,
+        contentType: UITextContentType,
+        autocap: Bool = true
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(Color.white.opacity(0.7))
+                .frame(width: 20)
+
+            ZStack(alignment: .leading) {
+                if text.wrappedValue.isEmpty {
+                    Text(placeholder)
+                        .foregroundStyle(Color.white.opacity(0.5))
+                }
+                TextField("", text: text)
+                    .keyboardType(keyboard)
+                    .textContentType(contentType)
+                    .autocapitalization(autocap ? .words : .none)
+                    .foregroundStyle(Color.white)
+                    .tint(Color.gold)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
+        .background(Color.white.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+        )
+    }
+
+    @ViewBuilder
+    private func authPasswordField(
+        placeholder: String,
+        text: Binding<String>,
+        showPassword: Binding<Bool>,
+        contentType: UITextContentType
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "lock.fill")
+                .foregroundStyle(Color.white.opacity(0.7))
+                .frame(width: 20)
+
+            ZStack(alignment: .leading) {
+                if text.wrappedValue.isEmpty {
+                    Text(placeholder)
+                        .foregroundStyle(Color.white.opacity(0.5))
+                }
+                if showPassword.wrappedValue {
+                    TextField("", text: text)
+                        .textContentType(contentType)
+                        .foregroundStyle(Color.white)
+                        .tint(Color.gold)
+                } else {
+                    SecureField("", text: text)
+                        .textContentType(contentType)
+                        .foregroundStyle(Color.white)
+                        .tint(Color.gold)
+                }
+            }
+
+            Button(action: { showPassword.wrappedValue.toggle() }) {
+                Image(systemName: showPassword.wrappedValue ? "eye.slash.fill" : "eye.fill")
+                    .foregroundStyle(Color.white.opacity(0.6))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
+        .background(Color.white.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+        )
+    }
+
+    // MARK: - Sign In Action
 
     private func signIn() async {
         isLoading = true

@@ -154,6 +154,7 @@ struct DashboardView: View {
                         }
                         .padding(.bottom, 20)
                     }
+                    .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.bgPrimary)
                     .refreshable { await vm.load() }

@@ -63,6 +63,7 @@ struct RoomGridView: View {
                         }
                         .padding(16)
                     }
+                    .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.bgSecondary)
                     .refreshable { await vm.load() }
@@ -90,6 +91,7 @@ struct RoomGridView: View {
             .sheet(isPresented: $showAddRoom) {
                 AddRoomView(viewModel: vm)
             }
+            .tint(Color.gold)
             .task { await vm.load() }
             .onChange(of: AuthService.shared.currentPropertyId) {
                 Task { await vm.load() }
@@ -150,7 +152,7 @@ struct RoomCard: View {
                 .foregroundStyle(Color.textPrimary)
                 .padding(.bottom, 5)
 
-            // Status pill — always at bottom, left aligned, clipped inside card
+            // Status pill
             Text(room.status.displayName)
                 .font(.caption2)
                 .fontWeight(.medium)

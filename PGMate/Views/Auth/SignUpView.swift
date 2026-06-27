@@ -10,6 +10,8 @@ struct SignUpView: View {
     @State private var propertyName = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showPassword = false
+    @State private var showConfirmPassword = false
 
     private var auth: AuthService { AuthService.shared }
 
@@ -21,95 +23,112 @@ struct SignUpView: View {
 
     var body: some View {
         ZStack {
-            // Full-screen gradient background
-            LinearGradient(
-                colors: [Color.navyDark, Color.navyPrimary, Color.navyLight],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            Color(hex: "#1A3566").ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: 28) {
-                    // MARK: Header
+                VStack(spacing: 0) {
+
+                    // MARK: Logo + Branding
                     VStack(spacing: 10) {
-                        Text("Create Account")
-                            .font(.system(size: 30, weight: .bold))
+                        Image("PGMateLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 80, height: 80)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                            .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
+
+                        Text("PGMate")
+                            .font(.title2)
+                            .fontWeight(.bold)
                             .foregroundStyle(Color.white)
 
-                        Text("Set up your PG management profile")
+                        Text("Create Your Account")
                             .font(.subheadline)
-                            .foregroundStyle(Color.white.opacity(0.7))
+                            .foregroundStyle(Color.gold)
                     }
-                    .padding(.top, 40)
+                    .padding(.top, 50)
+                    .padding(.bottom, 32)
 
-                    // MARK: Form
-                    VStack(spacing: 16) {
-                        signUpField("Full Name", placeholder: "Your name", text: $name,
-                                    contentType: .name, keyboard: .default)
+                    // MARK: Fields
+                    VStack(spacing: 14) {
+                        authField(
+                            icon: "person.fill",
+                            placeholder: "Full Name",
+                            text: $name,
+                            contentType: .name,
+                            autocap: true
+                        )
 
-                        signUpField("Email", placeholder: "you@example.com", text: $email,
-                                    contentType: .emailAddress, keyboard: .emailAddress,
-                                    autocap: false)
+                        authField(
+                            icon: "envelope.fill",
+                            placeholder: "Email Address",
+                            text: $email,
+                            keyboard: .emailAddress,
+                            contentType: .emailAddress,
+                            autocap: false
+                        )
 
-                        signUpField("Property Name", placeholder: "e.g. Sunrise PG", text: $propertyName,
-                                    contentType: .organizationName, keyboard: .default)
+                        authPasswordField(
+                            placeholder: "Password",
+                            text: $password,
+                            showPassword: $showPassword,
+                            contentType: .newPassword
+                        )
 
-                        secureSignUpField("Password", placeholder: "Min. 6 characters", text: $password,
-                                          contentType: .newPassword)
+                        authPasswordField(
+                            placeholder: "Confirm Password",
+                            text: $confirmPassword,
+                            showPassword: $showConfirmPassword,
+                            contentType: .newPassword
+                        )
 
-                        secureSignUpField("Confirm Password", placeholder: "Re-enter password",
-                                          text: $confirmPassword, contentType: .newPassword)
+                        authField(
+                            icon: "building.2.fill",
+                            placeholder: "Property Name",
+                            text: $propertyName,
+                            contentType: .organizationName,
+                            autocap: true
+                        )
 
-                        // Password mismatch warning
-                        if !confirmPassword.isEmpty && !passwordsMatch {
-                            HStack(spacing: 6) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                Text("Passwords do not match")
-                            }
-                            .font(.caption)
-                            .foregroundStyle(Color.goldLight)
-                        }
-
-                        // Validation / server error
+                        // Error pill
                         if let error = errorMessage {
-                            Text(error)
-                                .font(.caption)
-                                .foregroundStyle(Color.negative)
-                                .multilineTextAlignment(.center)
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .font(.caption)
+                                Text(error)
+                                    .font(.caption)
+                                    .multilineTextAlignment(.leading)
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.negative, in: RoundedRectangle(cornerRadius: 10))
                         }
 
                         // Create Account button
                         Button {
                             Task { await signUp() }
                         } label: {
-                            HStack {
+                            Group {
                                 if isLoading {
-                                    ProgressView().tint(Color.navyDark)
+                                    ProgressView().tint(Color(hex: "#1A3566"))
                                 } else {
                                     Text("Create Account")
-                                        .fontWeight(.bold)
-                                        .font(.system(size: 17))
+                                        .font(.system(size: 17, weight: .bold))
                                 }
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+                            .frame(height: 52)
                             .background(Color.gold)
-                            .foregroundStyle(Color.textOnGold)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .shadow(color: Color.gold.opacity(0.4), radius: 8, x: 0, y: 4)
+                            .foregroundStyle(Color(hex: "#1A3566"))
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
                         }
                         .disabled(isLoading || !isFormValid)
                         .opacity(isFormValid ? 1 : 0.6)
-                        .padding(.top, 8)
+                        .padding(.top, 4)
                     }
-                    .padding(24)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                    )
+                    .padding(.horizontal, 24)
 
                     // Back to Sign In
                     Button {
@@ -124,10 +143,10 @@ struct SignUpView: View {
                         }
                         .font(.subheadline)
                     }
+                    .padding(.top, 32)
 
                     Spacer(minLength: 40)
                 }
-                .padding(.horizontal, 24)
             }
         }
         .navigationBarHidden(true)
@@ -136,63 +155,85 @@ struct SignUpView: View {
     // MARK: - Field builders
 
     @ViewBuilder
-    private func signUpField(
-        _ label: String,
+    private func authField(
+        icon: String,
         placeholder: String,
         text: Binding<String>,
+        keyboard: UIKeyboardType = .default,
         contentType: UITextContentType,
-        keyboard: UIKeyboardType,
         autocap: Bool = true
     ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(Color.white.opacity(0.8))
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(Color.white.opacity(0.7))
+                .frame(width: 20)
 
-            TextField(placeholder, text: text)
-                .keyboardType(keyboard)
-                .textContentType(contentType)
-                .autocapitalization(autocap ? .words : .none)
-                .foregroundStyle(Color.white)
-                .tint(Color.gold)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(Color.white.opacity(0.15))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                )
+            ZStack(alignment: .leading) {
+                if text.wrappedValue.isEmpty {
+                    Text(placeholder)
+                        .foregroundStyle(Color.white.opacity(0.5))
+                }
+                TextField("", text: text)
+                    .keyboardType(keyboard)
+                    .textContentType(contentType)
+                    .autocapitalization(autocap ? .words : .none)
+                    .foregroundStyle(Color.white)
+                    .tint(Color.gold)
+            }
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
+        .background(Color.white.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+        )
     }
 
     @ViewBuilder
-    private func secureSignUpField(
-        _ label: String,
+    private func authPasswordField(
         placeholder: String,
         text: Binding<String>,
+        showPassword: Binding<Bool>,
         contentType: UITextContentType
     ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(Color.white.opacity(0.8))
+        HStack(spacing: 12) {
+            Image(systemName: "lock.fill")
+                .foregroundStyle(Color.white.opacity(0.7))
+                .frame(width: 20)
 
-            SecureField(placeholder, text: text)
-                .textContentType(contentType)
-                .foregroundStyle(Color.white)
-                .tint(Color.gold)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(Color.white.opacity(0.15))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                )
+            ZStack(alignment: .leading) {
+                if text.wrappedValue.isEmpty {
+                    Text(placeholder)
+                        .foregroundStyle(Color.white.opacity(0.5))
+                }
+                if showPassword.wrappedValue {
+                    TextField("", text: text)
+                        .textContentType(contentType)
+                        .foregroundStyle(Color.white)
+                        .tint(Color.gold)
+                } else {
+                    SecureField("", text: text)
+                        .textContentType(contentType)
+                        .foregroundStyle(Color.white)
+                        .tint(Color.gold)
+                }
+            }
+
+            Button(action: { showPassword.wrappedValue.toggle() }) {
+                Image(systemName: showPassword.wrappedValue ? "eye.slash.fill" : "eye.fill")
+                    .foregroundStyle(Color.white.opacity(0.6))
+            }
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
+        .background(Color.white.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+        )
     }
 
     // MARK: - Sign Up Action
@@ -208,6 +249,10 @@ struct SignUpView: View {
         }
         if password.count < 6 {
             errorMessage = "Password must be at least 6 characters."
+            return false
+        }
+        if !passwordsMatch {
+            errorMessage = "Passwords do not match."
             return false
         }
         if propertyName.trimmingCharacters(in: .whitespaces).isEmpty {

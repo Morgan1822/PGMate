@@ -91,6 +91,7 @@ struct MaintenanceBoardView: View {
                         }
                         .padding(16)
                     }
+                    .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
                     .background(Color.bgSecondary.ignoresSafeArea())
                 } else {
                     ScrollView(.vertical, showsIndicators: true) {
@@ -110,6 +111,7 @@ struct MaintenanceBoardView: View {
                         }
                         .padding(16)
                     }
+                    .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
                     .background(Color.bgSecondary.ignoresSafeArea())
                 }
             }

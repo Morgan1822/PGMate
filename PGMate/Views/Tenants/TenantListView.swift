@@ -59,6 +59,7 @@ struct TenantListView: View {
                     .listStyle(.plain)
                     .background(Color.bgSecondary.ignoresSafeArea())
                     .scrollContentBackground(.hidden)
+                    .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
                     .refreshable { await vm.load() }
                 }
             }
