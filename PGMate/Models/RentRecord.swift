@@ -35,9 +35,9 @@ struct RentRecord: Identifiable, Codable {
 
         var color: Color {
             switch self {
-            case .paid: return .successGreen
-            case .pending: return .primaryIndigo
-            case .overdue: return .accentGold
+            case .paid:    return .positive
+            case .pending: return .pending
+            case .overdue: return .negative
             }
         }
     }

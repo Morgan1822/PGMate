@@ -23,11 +23,13 @@ struct SettingsView: View {
                     LabeledContent("Email", value: Auth.auth().currentUser?.email ?? "—")
                     LabeledContent("Property", value: auth.propertyName.isEmpty ? "—" : auth.propertyName)
                 }
+                .listRowBackground(Color.surface)
 
                 // MARK: App
                 Section("App") {
                     LabeledContent("Version", value: appVersion)
                 }
+                .listRowBackground(Color.surface)
 
                 // MARK: Danger Zone
                 Section("Danger Zone") {
@@ -35,7 +37,7 @@ struct SettingsView: View {
                         showSignOutAlert = true
                     } label: {
                         Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.textSecondary)
                     }
 
                     Button(role: .destructive) {
@@ -44,7 +46,11 @@ struct SettingsView: View {
                         Label("Delete Account", systemImage: "trash.fill")
                     }
                 }
+                .listRowBackground(Color.surface)
             }
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(Color.bgSecondary.ignoresSafeArea())
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()

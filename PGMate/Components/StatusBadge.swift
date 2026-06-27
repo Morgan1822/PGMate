@@ -8,7 +8,7 @@ struct StatusBadge: View {
         Text(text)
             .font(.caption)
             .fontWeight(.semibold)
-            .foregroundColor(color)
+            .foregroundStyle(color)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(color.opacity(0.12))

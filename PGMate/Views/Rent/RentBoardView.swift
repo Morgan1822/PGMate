@@ -14,7 +14,7 @@ struct RentBoardView: View {
                     Button(action: { vm.navigateMonth(forward: false) }) {
                         Image(systemName: "chevron.left")
                             .fontWeight(.semibold)
-                            .foregroundStyle(Color.navyPrimary)
+                            .foregroundStyle(Color.gold)
                     }
                     Spacer()
                     Text(vm.monthYearString)
@@ -24,7 +24,7 @@ struct RentBoardView: View {
                     Button(action: { vm.navigateMonth(forward: true) }) {
                         Image(systemName: "chevron.right")
                             .fontWeight(.semibold)
-                            .foregroundStyle(Color.navyPrimary)
+                            .foregroundStyle(Color.gold)
                     }
                 }
                 .padding(.horizontal, 20)

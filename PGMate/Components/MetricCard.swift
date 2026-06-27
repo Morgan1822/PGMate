@@ -3,24 +3,24 @@ import SwiftUI
 struct MetricCard: View {
     let title: String
     let value: String
-    var valueColor: Color = Color.textDark
+    var valueColor: Color = Color.textPrimary
     var subtitle: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.textSecondary)
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundColor(valueColor)
+                .foregroundStyle(valueColor)
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
             if let subtitle = subtitle {
                 Text(subtitle)
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.textSecondary)
             }
         }
         .padding(14)

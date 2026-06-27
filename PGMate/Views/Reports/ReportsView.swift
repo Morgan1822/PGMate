@@ -33,6 +33,7 @@ struct ReportsView: View {
                         }
                         .padding()
                     }
+                    .background(Color.bgSecondary.ignoresSafeArea())
                 }
             }
             .navigationTitle("Reports")
@@ -87,13 +88,14 @@ private struct PLCard: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.gold)
                 }
 
                 Spacer()
 
                 Text(viewModel.selectedMonth.formatted(.dateTime.month(.wide).year()))
                     .font(.headline)
+                    .foregroundStyle(Color.textPrimary)
 
                 Spacer()
 
@@ -104,7 +106,7 @@ private struct PLCard: View {
                 } label: {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(canGoForward ? .primary : .tertiary)
+                        .foregroundStyle(canGoForward ? Color.gold : Color.textTertiary)
                 }
                 .disabled(!canGoForward)
             }
@@ -142,7 +144,7 @@ private struct PLCard: View {
             } else {
                 Text("No records for this month")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(32)
             }
@@ -185,7 +187,7 @@ private struct PLRow: View {
         HStack {
             Text(label)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
             Spacer()
             Text(formatINR(amount))
                 .font(.subheadline)
@@ -204,11 +206,12 @@ private struct TrendChartSection: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("6-Month Trend")
                 .font(.headline)
+                .foregroundStyle(Color.textPrimary)
 
             if viewModel.monthlyData.isEmpty {
                 Text("No data available")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textSecondary)
                     .frame(maxWidth: .infinity)
                     .frame(height: 200)
             } else {
@@ -301,6 +304,7 @@ private struct MonthTableSection: View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Month by Month")
                 .font(.headline)
+                .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 10)
@@ -359,7 +363,7 @@ private struct MonthTableSection: View {
             if viewModel.monthlyData.isEmpty {
                 Text("No data available")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(24)
             }
@@ -372,6 +376,7 @@ private struct MonthTableSection: View {
                     Text("6-Month Total")
                         .font(.subheadline)
                         .fontWeight(.semibold)
+                        .foregroundStyle(Color.textPrimary)
                     Spacer()
                     Text(formatINR(totalProfit))
                         .font(.subheadline)

@@ -105,7 +105,7 @@ struct SignInView: View {
                             if let error = errorMessage {
                                 Text(error)
                                     .font(.caption)
-                                    .foregroundStyle(Color.goldLight)
+                                    .foregroundStyle(Color.negative)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 4)
                             }
