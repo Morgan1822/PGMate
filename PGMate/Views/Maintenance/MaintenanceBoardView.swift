@@ -4,20 +4,10 @@ struct MaintenanceBoardView: View {
     @State private var vm = MaintenanceViewModel()
     @State private var selectedTask: MaintenanceTask?
     @State private var showAddTask = false
-    @State private var expandedSections: Set<MaintenanceTask.TaskStatus> = Set(MaintenanceTask.TaskStatus.allCases)
     @State private var selectedFilter: MaintenanceFilter = .all
 
     enum MaintenanceFilter: CaseIterable, Equatable {
         case all, open, inProgress, done
-
-        func label(openCount: Int, inProgressCount: Int, doneCount: Int, totalCount: Int) -> String {
-            switch self {
-            case .all:        return "All (\(totalCount))"
-            case .open:       return "Open (\(openCount))"
-            case .inProgress: return "In Progress (\(inProgressCount))"
-            case .done:       return "Done (\(doneCount))"
-            }
-        }
     }
 
     private var filteredTasks: [MaintenanceTask] {
@@ -32,17 +22,31 @@ struct MaintenanceBoardView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+
+                // MARK: Summary row
+                HStack(spacing: 12) {
+                    SmallMetricCard(
+                        label: "Open Tasks",
+                        value: "\(vm.openTasks.count)",
+                        color: .negative)
+                    SmallMetricCard(
+                        label: "In Progress",
+                        value: "\(vm.inProgressTasks.count)",
+                        color: .pending)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(Color.bgPrimary)
+
+                Divider()
+                    .background(Color.textTertiary.opacity(0.3))
+
                 // MARK: Filter chips
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
                         ForEach(MaintenanceFilter.allCases, id: \.self) { filter in
                             FilterChip(
-                                title: filter.label(
-                                    openCount: vm.openTasks.count,
-                                    inProgressCount: vm.inProgressTasks.count,
-                                    doneCount: vm.doneTasks.count,
-                                    totalCount: vm.tasks.count
-                                ),
+                                title: filterLabel(filter),
                                 isSelected: selectedFilter == filter
                             ) {
                                 selectedFilter = filter
@@ -50,104 +54,58 @@ struct MaintenanceBoardView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 10)
                 }
                 .background(Color.bgPrimary)
 
-                Divider()
-                    .background(Color.textTertiary.opacity(0.3))
-
+                // MARK: Task list
                 if vm.isLoading && vm.tasks.isEmpty {
-                    ProgressView()
-                        .tint(Color.gold)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.bgPrimary.ignoresSafeArea())
-                } else if vm.tasks.isEmpty {
-                    MaintenanceEmptyStateView()
-                } else if selectedFilter == .all {
-                    ScrollView(.vertical, showsIndicators: true) {
-                        VStack(spacing: 16) {
-                            MaintenanceSectionView(
-                                status: .open,
-                                tasks: vm.openTasks,
-                                isExpanded: isExpanded(.open),
-                                onToggle: { toggleSection(.open) },
-                                onTapTask: { selectedTask = $0 }
-                            )
-                            MaintenanceSectionView(
-                                status: .inProgress,
-                                tasks: vm.inProgressTasks,
-                                isExpanded: isExpanded(.inProgress),
-                                onToggle: { toggleSection(.inProgress) },
-                                onTapTask: { selectedTask = $0 }
-                            )
-                            MaintenanceSectionView(
-                                status: .done,
-                                tasks: vm.doneTasks,
-                                isExpanded: isExpanded(.done),
-                                onToggle: { toggleSection(.done) },
-                                onTapTask: { selectedTask = $0 }
-                            )
-                        }
-                        .padding(16)
+                    VStack(spacing: 10) {
+                        ProgressView().tint(Color.gold)
+                        Text("Loading...").foregroundStyle(Color.textSecondary).font(.caption)
                     }
-                    .contentMargins(.bottom, 80, for: .scrollContent)
-                    .background(Color.bgSecondary.ignoresSafeArea())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.bgPrimary)
+                } else if filteredTasks.isEmpty {
+                    EmptyStateView(
+                        icon: "wrench.and.screwdriver",
+                        title: selectedFilter == .all ? "No Tasks Yet" : "No \(filterTitle(selectedFilter)) Tasks",
+                        subtitle: selectedFilter == .all
+                            ? "Tap + to log a maintenance task"
+                            : "No tasks with this status")
                 } else {
-                    ScrollView(.vertical, showsIndicators: true) {
-                        VStack(spacing: 12) {
-                            if filteredTasks.isEmpty {
-                                Text("No tasks")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.textSecondary)
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .padding(.top, 40)
-                            } else {
-                                ForEach(filteredTasks) { task in
-                                    TaskCardView(task: task)
-                                        .onTapGesture { selectedTask = task }
-                                }
-                            }
+                    List {
+                        ForEach(filteredTasks) { task in
+                            MaintenanceTaskRow(task: task)
+                                .contentShape(Rectangle())
+                                .onTapGesture { selectedTask = task }
+                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
                         }
-                        .padding(16)
                     }
-                    .contentMargins(.bottom, 80, for: .scrollContent)
+                    .listStyle(.plain)
                     .background(Color.bgSecondary.ignoresSafeArea())
+                    .scrollContentBackground(.hidden)
+                    .contentMargins(.bottom, 80, for: .scrollContent)
+                    .refreshable {
+                        if let propertyId = AuthService.shared.currentPropertyId {
+                            await vm.fetchTasks(propertyId: propertyId)
+                        }
+                    }
                 }
             }
-            .background(Color.bgPrimary.ignoresSafeArea())
+            .background(Color.bgPrimary)
             .navigationTitle("Maintenance")
             .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 8) {
-                        Text("Maintenance")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.textOnNavy)
-
-                        if vm.openTasks.count > 0 {
-                            Text("\(vm.openTasks.count)")
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.textOnNavy)
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 3)
-                                .background(Color.negative)
-                                .clipShape(Capsule())
-                        }
-                    }
-                }
-
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showAddTask = true }) {
                         Image(systemName: "plus")
-                            .font(.headline)
-                            .fontWeight(.bold)
+                            .fontWeight(.semibold)
                             .foregroundStyle(Color.gold)
                     }
-                    .accessibilityLabel("Add task")
                 }
             }
             .sheet(item: $selectedTask) { task in
@@ -166,91 +124,81 @@ struct MaintenanceBoardView: View {
                     Task { await vm.fetchTasks(propertyId: propertyId) }
                 }
             }
-            .refreshable {
-                if let propertyId = AuthService.shared.currentPropertyId {
-                    await vm.fetchTasks(propertyId: propertyId)
-                }
-            }
         }
     }
 
-    private func isExpanded(_ status: MaintenanceTask.TaskStatus) -> Bool {
-        expandedSections.contains(status)
+    private func filterLabel(_ filter: MaintenanceFilter) -> String {
+        switch filter {
+        case .all:        return "All (\(vm.tasks.count))"
+        case .open:       return "Open (\(vm.openTasks.count))"
+        case .inProgress: return "In Progress (\(vm.inProgressTasks.count))"
+        case .done:       return "Done (\(vm.doneTasks.count))"
+        }
     }
 
-    private func toggleSection(_ status: MaintenanceTask.TaskStatus) {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            if expandedSections.contains(status) {
-                expandedSections.remove(status)
-            } else {
-                expandedSections.insert(status)
-            }
+    private func filterTitle(_ filter: MaintenanceFilter) -> String {
+        switch filter {
+        case .all:        return "All"
+        case .open:       return "Open"
+        case .inProgress: return "In Progress"
+        case .done:       return "Done"
         }
     }
 }
 
-// MARK: - MaintenanceSectionView
+// MARK: - MaintenanceTaskRow
 
-struct MaintenanceSectionView: View {
-    let status: MaintenanceTask.TaskStatus
-    let tasks: [MaintenanceTask]
-    let isExpanded: Bool
-    let onToggle: () -> Void
-    let onTapTask: (MaintenanceTask) -> Void
+struct MaintenanceTaskRow: View {
+    let task: MaintenanceTask
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Button(action: onToggle) {
-                HStack(spacing: 10) {
-                    Text(status.displayName)
-                        .font(.headline)
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(task.title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.textPrimary)
+                    .lineLimit(2)
+                Text(task.roomNumber.isEmpty ? "No room assigned" : "Room \(task.roomNumber)")
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(task.priority.themeColor)
+                        .frame(width: 7, height: 7)
+                    Text(task.priority.displayName)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(task.priority.themeColor)
+                }
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 6) {
+                if task.estimatedCost > 0 {
+                    Text(formatINR(task.estimatedCost))
+                        .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundStyle(Color.textPrimary)
-
-                    Text("\(tasks.count)")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.textOnNavy)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 4)
-                        .background(status.themeColor)
-                        .clipShape(Capsule())
-
-                    Spacer()
-
-                    Image(systemName: "chevron.down")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.textSecondary)
-                        .rotationEffect(.degrees(isExpanded ? 0 : -90))
                 }
-                .contentShape(Rectangle())
+                StatusBadge(text: task.status.displayName, color: task.status.themeColor)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("\(isExpanded ? "Collapse" : "Expand") \(status.displayName)")
 
-            if isExpanded {
-                VStack(spacing: 12) {
-                    if tasks.isEmpty {
-                        Text("No tasks")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.textSecondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 12)
-                    } else {
-                        ForEach(tasks) { task in
-                            TaskCardView(task: task)
-                                .onTapGesture { onTapTask(task) }
-                        }
-                    }
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
+            if task.status != .done {
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(Color.textTertiary)
             }
         }
+        .padding(14)
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 14))
+        .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
 }
 
 // MARK: - TaskCardView
+// Used by OpenMaintenanceView in DashboardView
 
 struct TaskCardView: View {
     let task: MaintenanceTask
@@ -287,7 +235,6 @@ struct TaskCardView: View {
                     Circle()
                         .fill(task.priority.themeColor)
                         .frame(width: 8, height: 8)
-
                     Text(task.priority.displayName)
                         .font(.caption)
                         .fontWeight(.medium)
@@ -314,31 +261,6 @@ struct TaskCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .shadow(color: Color.black.opacity(0.07), radius: 8, x: 0, y: 3)
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
-}
-
-// MARK: - MaintenanceEmptyStateView
-
-struct MaintenanceEmptyStateView: View {
-    var body: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "wrench.and.screwdriver")
-                .font(.system(size: 52, weight: .regular))
-                .foregroundStyle(Color.textSecondary.opacity(0.55))
-
-            Text("No maintenance tasks")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.textSecondary)
-
-            Text("Tap + to add a task")
-                .font(.subheadline)
-                .foregroundStyle(Color.textSecondary)
-        }
-        .multilineTextAlignment(.center)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(32)
-        .background(Color.bgPrimary.ignoresSafeArea())
     }
 }
 
@@ -476,15 +398,14 @@ struct DetailRow: View {
     }
 }
 
+// MARK: - Status theme colors
+
 private extension MaintenanceTask.TaskStatus {
     var themeColor: Color {
         switch self {
-        case .open:
-            Color.negative
-        case .inProgress:
-            Color.gold
-        case .done:
-            Color.positive
+        case .open:       Color.negative
+        case .inProgress: Color.pending
+        case .done:       Color.positive
         }
     }
 }
@@ -492,12 +413,9 @@ private extension MaintenanceTask.TaskStatus {
 private extension MaintenanceTask.Priority {
     var themeColor: Color {
         switch self {
-        case .low:
-            Color.textSecondary
-        case .medium:
-            Color.gold
-        case .high:
-            Color.negative
+        case .low:    Color.textSecondary
+        case .medium: Color.gold
+        case .high:   Color.negative
         }
     }
 }
