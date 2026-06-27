@@ -7,6 +7,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        configureFirebase()
+
         #if DEBUG
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(false)
         #else
@@ -16,6 +18,28 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         configureNavBarAppearance()
         configureTabBarAppearance()
         return true
+    }
+
+    // MARK: - Firebase
+
+    private func configureFirebase() {
+        let plistName: String
+        #if DEBUG
+        plistName = "GoogleService-Info-Dev"
+        #else
+        plistName = "GoogleService-Info-Prod"
+        #endif
+
+        guard let filePath = Bundle.main.path(forResource: plistName, ofType: "plist"),
+              let options = FirebaseOptions(contentsOfFile: filePath) else {
+            fatalError("❌ Could not load \(plistName).plist")
+        }
+
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure(options: options)
+        }
+
+        print("✅ Firebase configured: \(plistName)")
     }
 
     // MARK: - Global Navigation Bar Appearance
@@ -82,10 +106,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct PGMateApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
-    init() {
-        configureFirebase()
-    }
-
     var body: some Scene {
         WindowGroup {
             ZStack {
@@ -94,21 +114,5 @@ struct PGMateApp: App {
                     .tint(Color.gold)
             }
         }
-    }
-
-    private func configureFirebase() {
-        #if DEBUG
-        let plistName = "GoogleService-Info-Dev"
-        #else
-        let plistName = "GoogleService-Info-Prod"
-        #endif
-
-        guard let filePath = Bundle.main.path(forResource: plistName, ofType: "plist"),
-              let options = FirebaseOptions(contentsOfFile: filePath) else {
-            fatalError("Could not load \(plistName).plist from bundle.")
-        }
-
-        FirebaseApp.configure(options: options)
-        print("Firebase configured with \(plistName)")
     }
 }
