@@ -36,7 +36,7 @@ class AuthService {
         }
     }
 
-    func signUp(name: String, email: String, password: String) async throws {
+    func signUp(name: String, email: String, password: String, propertyName: String) async throws {
         let result = try await Auth.auth().createUser(withEmail: email, password: password)
         let uid = result.user.uid
         let propertyId = UUID().uuidString
@@ -44,14 +44,13 @@ class AuthService {
 
         try await db.collection("properties").document(propertyId).setData([
             "id": propertyId,
-            "name": "My Property",
-            "address": "",
+            "name": propertyName,
             "ownerId": uid,
-            "totalRooms": 0
+            "createdAt": Timestamp(date: Date())
         ])
 
         try await db.collection("owners").document(uid).setData([
-            "id": uid,
+            "uid": uid,
             "name": name,
             "email": email,
             "propertyId": propertyId,
@@ -62,7 +61,7 @@ class AuthService {
             self.currentUserId = uid
             self.currentPropertyId = propertyId
             self.ownerName = name
-            self.propertyName = "My Property"
+            self.propertyName = propertyName
             self.isAuthenticated = true
         }
     }

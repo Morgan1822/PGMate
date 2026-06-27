@@ -1,5 +1,4 @@
 import SwiftUI
-import FirebaseFirestore
 
 struct SignUpView: View {
     @Environment(\.dismiss) private var dismiss
@@ -16,7 +15,7 @@ struct SignUpView: View {
 
     private var passwordsMatch: Bool { password == confirmPassword }
     private var isFormValid: Bool {
-        !name.isEmpty && !email.isEmpty && password.count >= 6
+        !name.isEmpty && email.contains("@") && password.count >= 6
             && passwordsMatch && !propertyName.isEmpty
     }
 
@@ -72,11 +71,11 @@ struct SignUpView: View {
                             .foregroundStyle(Color.goldLight)
                         }
 
-                        // General error
+                        // Validation / server error
                         if let error = errorMessage {
                             Text(error)
                                 .font(.caption)
-                                .foregroundStyle(Color.goldLight)
+                                .foregroundStyle(Color.negative)
                                 .multilineTextAlignment(.center)
                         }
 
@@ -198,17 +197,37 @@ struct SignUpView: View {
 
     // MARK: - Sign Up Action
 
+    private func validate() -> Bool {
+        if name.trimmingCharacters(in: .whitespaces).isEmpty {
+            errorMessage = "Full name is required."
+            return false
+        }
+        if !email.contains("@") {
+            errorMessage = "Enter a valid email address."
+            return false
+        }
+        if password.count < 6 {
+            errorMessage = "Password must be at least 6 characters."
+            return false
+        }
+        if propertyName.trimmingCharacters(in: .whitespaces).isEmpty {
+            errorMessage = "Property name is required."
+            return false
+        }
+        return true
+    }
+
     private func signUp() async {
+        guard validate() else { return }
         isLoading = true
         errorMessage = nil
         do {
-            try await auth.signUp(name: name, email: email, password: password)
-            // Update the property name in Firestore after account creation
-            if let propertyId = auth.currentPropertyId, !propertyName.isEmpty {
-                let db = Firestore.firestore()
-                try await db.collection("properties").document(propertyId)
-                    .updateData(["name": propertyName])
-            }
+            try await auth.signUp(
+                name: name,
+                email: email,
+                password: password,
+                propertyName: propertyName
+            )
         } catch {
             errorMessage = error.localizedDescription
         }
