@@ -79,7 +79,11 @@ struct SignInView: View {
                             } label: {
                                 Group {
                                     if isLoading {
-                                        ProgressView().tint(Color(hex: "#1A3566"))
+                                        HStack(spacing: 10) {
+                                            ProgressView().tint(Color(hex: "#1A3566"))
+                                            Text("Signing in...")
+                                                .font(.system(size: 17, weight: .bold))
+                                        }
                                     } else {
                                         Text("Sign In")
                                             .font(.system(size: 17, weight: .bold))

@@ -2,13 +2,26 @@ import SwiftUI
 
 struct DashboardView: View {
     @State private var vm = DashboardViewModel()
+    @State private var navigateToOverdueRent = false
+    @State private var navigateToOpenMaintenance = false
 
     var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
         case 5..<12: return "Good morning"
         case 12..<17: return "Good afternoon"
-        default:      return "Good evening"
+        case 17..<21: return "Good evening"
+        default:      return "Good night"
+        }
+    }
+
+    var greetingIcon: (name: String, color: Color) {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12: return ("sun.max.fill", Color.gold)
+        case 12..<17: return ("sun.haze.fill", Color.orange)
+        case 17..<21: return ("sunset.fill", Color.orange)
+        default:      return ("moon.stars.fill", Color(red: 0.75, green: 0.9, blue: 1.0))
         }
     }
 
@@ -24,10 +37,15 @@ struct DashboardView: View {
 
                             // MARK: Header
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("\(greeting), \(vm.ownerName)")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(Color.textPrimary)
+                                HStack(spacing: 8) {
+                                    Text("\(greeting), \(vm.ownerName)")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(Color.textPrimary)
+                                    Image(systemName: greetingIcon.name)
+                                        .font(.title2)
+                                        .foregroundStyle(greetingIcon.color)
+                                }
                                 Text(vm.propertyName)
                                     .font(.subheadline)
                                     .fontWeight(.medium)
@@ -44,11 +62,9 @@ struct DashboardView: View {
                             // MARK: Occupancy Card
                             VStack(spacing: 16) {
                                 ZStack {
-                                    // Track ring
                                     Circle()
                                         .stroke(Color.surfaceElevated, lineWidth: 14)
                                         .frame(width: 140, height: 140)
-                                    // Gold progress ring
                                     Circle()
                                         .trim(from: 0, to: vm.occupancyRate)
                                         .stroke(
@@ -108,16 +124,26 @@ struct DashboardView: View {
                             if vm.overdueCount > 0 || vm.pendingMaintenanceCount > 0 {
                                 VStack(spacing: 10) {
                                     if vm.overdueCount > 0 {
-                                        AlertRow(
-                                            icon: "exclamationmark.circle.fill",
-                                            message: "\(vm.overdueCount) tenant(s) have overdue rent",
-                                            color: .negative)
+                                        Button {
+                                            navigateToOverdueRent = true
+                                        } label: {
+                                            AlertRow(
+                                                icon: "exclamationmark.circle.fill",
+                                                message: "\(vm.overdueCount) tenant(s) have overdue rent",
+                                                color: .negative)
+                                        }
+                                        .buttonStyle(.plain)
                                     }
                                     if vm.pendingMaintenanceCount > 0 {
-                                        AlertRow(
-                                            icon: "wrench.fill",
-                                            message: "\(vm.pendingMaintenanceCount) maintenance tasks pending",
-                                            color: .warning)
+                                        Button {
+                                            navigateToOpenMaintenance = true
+                                        } label: {
+                                            AlertRow(
+                                                icon: "wrench.fill",
+                                                message: "\(vm.pendingMaintenanceCount) maintenance tasks pending",
+                                                color: .warning)
+                                        }
+                                        .buttonStyle(.plain)
                                     }
                                 }
                                 .padding(.horizontal, 20)
@@ -164,6 +190,12 @@ struct DashboardView: View {
             .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.inline)
             .navyNavBar()
+            .navigationDestination(isPresented: $navigateToOverdueRent) {
+                OverdueRentView()
+            }
+            .navigationDestination(isPresented: $navigateToOpenMaintenance) {
+                OpenMaintenanceView()
+            }
             .task { await vm.load() }
             .onChange(of: AuthService.shared.currentPropertyId) {
                 Task { await vm.load() }
@@ -243,5 +275,109 @@ struct ActivityRow: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
+    }
+}
+
+// MARK: - OverdueRentView
+
+struct OverdueRentView: View {
+    @State private var vm = RentViewModel()
+    @State private var selectedRecord: RentRecord?
+
+    var body: some View {
+        Group {
+            if vm.isLoading {
+                ProgressView()
+                    .tint(Color.gold)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.bgSecondary)
+            } else if vm.filteredRecords.isEmpty {
+                EmptyStateView(
+                    icon: "checkmark.circle.fill",
+                    title: "No Overdue Rent",
+                    subtitle: "All tenants are up to date")
+            } else {
+                List {
+                    ForEach(vm.filteredRecords) { record in
+                        RentRecordRow(record: record)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if record.status != .paid { selectedRecord = record }
+                            }
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                    }
+                }
+                .listStyle(.plain)
+                .background(Color.bgSecondary.ignoresSafeArea())
+                .scrollContentBackground(.hidden)
+                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
+            }
+        }
+        .background(Color.bgSecondary.ignoresSafeArea())
+        .navigationTitle("Overdue Rent")
+        .navigationBarTitleDisplayMode(.inline)
+        .navyNavBar()
+        .onAppear { vm.selectedFilter = .overdue }
+        .task { await vm.load() }
+        .onChange(of: AuthService.shared.currentPropertyId) {
+            Task { await vm.load() }
+        }
+        .sheet(item: $selectedRecord) { record in
+            RecordPaymentView(record: record, viewModel: vm)
+        }
+    }
+}
+
+// MARK: - OpenMaintenanceView
+
+struct OpenMaintenanceView: View {
+    @State private var vm = MaintenanceViewModel()
+    @State private var selectedTask: MaintenanceTask?
+
+    var body: some View {
+        Group {
+            if vm.isLoading && vm.tasks.isEmpty {
+                ProgressView()
+                    .tint(Color.gold)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.bgSecondary)
+            } else if vm.openTasks.isEmpty {
+                EmptyStateView(
+                    icon: "checkmark.circle.fill",
+                    title: "No Open Tasks",
+                    subtitle: "All maintenance tasks are resolved")
+            } else {
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(vm.openTasks) { task in
+                            TaskCardView(task: task)
+                                .onTapGesture { selectedTask = task }
+                        }
+                    }
+                    .padding(16)
+                }
+                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 80) }
+                .background(Color.bgSecondary.ignoresSafeArea())
+            }
+        }
+        .background(Color.bgSecondary.ignoresSafeArea())
+        .navigationTitle("Open Tasks")
+        .navigationBarTitleDisplayMode(.inline)
+        .navyNavBar()
+        .task {
+            if let propertyId = AuthService.shared.currentPropertyId {
+                await vm.fetchTasks(propertyId: propertyId)
+            }
+        }
+        .onChange(of: AuthService.shared.currentPropertyId) {
+            if let propertyId = AuthService.shared.currentPropertyId {
+                Task { await vm.fetchTasks(propertyId: propertyId) }
+            }
+        }
+        .sheet(item: $selectedTask) { task in
+            TaskDetailSheet(task: task, viewModel: vm)
+        }
     }
 }
