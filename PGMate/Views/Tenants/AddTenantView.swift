@@ -13,10 +13,17 @@ struct AddTenantView: View {
     @State private var monthlyRent = ""
     @State private var emergencyName = ""
     @State private var emergencyPhone = ""
+    // Profile photo
     @State private var selectedImage: UIImage?
     @State private var showPhotoOptions = false
     @State private var showCamera = false
     @State private var showLibrary = false
+    // ID Proof photo
+    @State private var proofImage: UIImage?
+    @State private var showProofOptions = false
+    @State private var showProofCamera = false
+    @State private var showProofLibrary = false
+
     @State private var vacantRooms: [Room] = []
     @State private var isLoading = false
     @State private var errorMessage = ""
@@ -24,7 +31,7 @@ struct AddTenantView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // MARK: Photo
+                // MARK: Profile Photo
                 Section {
                     HStack {
                         Spacer()
@@ -32,11 +39,11 @@ struct AddTenantView: View {
                             Button(action: { showPhotoOptions = true }) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.backgroundLight)
+                                        .fill(Color.bgSecondary)
                                         .frame(width: 90, height: 90)
                                         .overlay(
                                             Circle().stroke(
-                                                Color.primaryIndigo.opacity(0.3),
+                                                Color.navyPrimary.opacity(0.3),
                                                 lineWidth: 2)
                                         )
                                     if let photo = selectedImage {
@@ -49,10 +56,10 @@ struct AddTenantView: View {
                                         VStack(spacing: 4) {
                                             Image(systemName: "camera.fill")
                                                 .font(.system(size: 24))
-                                                .foregroundColor(.primaryIndigo)
+                                                .foregroundStyle(Color.navyPrimary)
                                             Text("Add Photo")
                                                 .font(.caption2)
-                                                .foregroundColor(.primaryIndigo)
+                                                .foregroundStyle(Color.navyPrimary)
                                         }
                                     }
                                 }
@@ -69,11 +76,63 @@ struct AddTenantView: View {
                                 Button("Cancel", role: .cancel) {}
                             }
                             if selectedImage != nil {
-                                Button("Change Photo") {
-                                    showPhotoOptions = true
+                                Button("Change Photo") { showPhotoOptions = true }
+                                    .font(.caption)
+                                    .foregroundStyle(Color.navyPrimary)
+                            }
+                        }
+                        Spacer()
+                    }
+                    .listRowBackground(Color.clear)
+                }
+
+                // MARK: ID Proof Photo
+                Section("ID Proof (Aadhaar / Any ID)") {
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 8) {
+                            Button(action: { showProofOptions = true }) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.bgSecondary)
+                                        .frame(width: 200, height: 110)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12).stroke(
+                                                Color.navyPrimary.opacity(0.3), lineWidth: 2)
+                                        )
+                                    if let proof = proofImage {
+                                        Image(uiImage: proof)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 200, height: 110)
+                                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    } else {
+                                        VStack(spacing: 6) {
+                                            Image(systemName: "doc.viewfinder")
+                                                .font(.system(size: 28))
+                                                .foregroundStyle(Color.navyPrimary)
+                                            Text("Add ID Proof")
+                                                .font(.caption2)
+                                                .foregroundStyle(Color.navyPrimary)
+                                        }
+                                    }
                                 }
-                                .font(.caption)
-                                .foregroundColor(.primaryIndigo)
+                            }
+                            .confirmationDialog(
+                                "Add ID Proof",
+                                isPresented: $showProofOptions,
+                                titleVisibility: .visible
+                            ) {
+                                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                                    Button("Take Photo") { showProofCamera = true }
+                                }
+                                Button("Choose from Library") { showProofLibrary = true }
+                                Button("Cancel", role: .cancel) {}
+                            }
+                            if proofImage != nil {
+                                Button("Change Proof") { showProofOptions = true }
+                                    .font(.caption)
+                                    .foregroundStyle(Color.navyPrimary)
                             }
                         }
                         Spacer()
@@ -124,7 +183,7 @@ struct AddTenantView: View {
                 if !errorMessage.isEmpty {
                     Section {
                         Text(errorMessage)
-                            .foregroundColor(.red)
+                            .foregroundStyle(Color.negative)
                             .font(.caption)
                     }
                 }
@@ -142,11 +201,19 @@ struct AddTenantView: View {
                         .disabled(!canSave || isLoading)
                 }
             }
+            // Profile photo sheets
             .sheet(isPresented: $showCamera) {
                 ImagePicker(selectedImage: $selectedImage, sourceType: .camera)
             }
             .sheet(isPresented: $showLibrary) {
                 ImagePicker(selectedImage: $selectedImage, sourceType: .photoLibrary)
+            }
+            // Proof photo sheets
+            .sheet(isPresented: $showProofCamera) {
+                ImagePicker(selectedImage: $proofImage, sourceType: .camera)
+            }
+            .sheet(isPresented: $showProofLibrary) {
+                ImagePicker(selectedImage: $proofImage, sourceType: .photoLibrary)
             }
             .task { await loadVacantRooms() }
         }
@@ -196,9 +263,13 @@ struct AddTenantView: View {
             photoURL: nil
         )
 
-        // Save photo locally in UserDefaults
+        // Save profile photo
         if let imageData = selectedImage?.jpegData(compressionQuality: 0.7) {
             UserDefaults.standard.set(imageData, forKey: "tenant_photo_\(tenant.id)")
+        }
+        // Save ID proof photo
+        if let proofData = proofImage?.jpegData(compressionQuality: 0.7) {
+            UserDefaults.standard.set(proofData, forKey: "tenant_proof_\(tenant.id)")
         }
 
         Task {

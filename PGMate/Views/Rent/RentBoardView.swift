@@ -4,6 +4,10 @@ struct RentBoardView: View {
     @State private var vm = RentViewModel()
     @State private var selectedRecord: RentRecord?
     @State private var showRentReminder = false
+    @State private var showOverdueSheet = false
+    @State private var tenantPhones: [String: String] = [:]
+    @State private var showNoPhoneAlert = false
+    @State private var noPhoneAlertName = ""
 
     var body: some View {
         NavigationStack {
@@ -46,6 +50,37 @@ struct RentBoardView: View {
                 .padding(.vertical, 10)
                 .background(Color.bgPrimary)
 
+                // MARK: Overdue banner
+                if vm.overdueCount > 0 {
+                    Button(action: { showOverdueSheet = true }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(Color.gold)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(vm.overdueCount) tenant(s) overdue")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(Color.textPrimary)
+                                Text("Tap to send WhatsApp reminders")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.textSecondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(Color.textTertiary)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.gold.opacity(0.10))
+                        .overlay(
+                            Rectangle().frame(height: 1).foregroundStyle(Color.gold.opacity(0.25)),
+                            alignment: .bottom
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+
                 Divider()
                     .background(Color.textTertiary.opacity(0.3))
 
@@ -82,14 +117,19 @@ struct RentBoardView: View {
                 } else {
                     List {
                         ForEach(vm.filteredRecords) { record in
-                            RentRecordRow(record: record)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    if record.status != .paid { selectedRecord = record }
-                                }
-                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
+                            RentRecordRow(
+                                record: record,
+                                whatsAppAction: record.status == .overdue
+                                    ? { sendWhatsApp(for: record) }
+                                    : nil
+                            )
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if record.status != .paid { selectedRecord = record }
+                            }
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                         }
                     }
                     .listStyle(.plain)
@@ -112,15 +152,69 @@ struct RentBoardView: View {
                 }
             }
             .sheet(item: $selectedRecord) { record in
-                RecordPaymentView(record: record, viewModel: vm)
+                RecordPaymentView(
+                    record: record,
+                    viewModel: vm,
+                    tenantPhone: tenantPhones[record.tenantId] ?? "")
             }
             .sheet(isPresented: $showRentReminder) {
                 RentReminderView(viewModel: vm)
             }
-            .task { await vm.load() }
-            .onChange(of: AuthService.shared.currentPropertyId) {
-                Task { await vm.load() }
+            .confirmationDialog(
+                "\(vm.overdueCount) Overdue Tenant(s)",
+                isPresented: $showOverdueSheet,
+                titleVisibility: .visible
+            ) {
+                ForEach(vm.rentRecords.filter { $0.status == .overdue }) { record in
+                    Button("\(record.tenantName) — \(formatINR(record.amount))") {
+                        sendWhatsApp(for: record)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Select a tenant to send a WhatsApp reminder")
             }
+            .alert("No Phone Number", isPresented: $showNoPhoneAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("No phone number for \(noPhoneAlertName). Add it in the tenant profile.")
+            }
+            .task {
+                await vm.load()
+                await loadTenantPhones()
+            }
+            .onChange(of: AuthService.shared.currentPropertyId) {
+                Task {
+                    await vm.load()
+                    await loadTenantPhones()
+                }
+            }
+        }
+    }
+
+    private func loadTenantPhones() async {
+        guard let propertyId = AuthService.shared.currentPropertyId else { return }
+        if let tenants = try? await FirestoreService.shared.fetchTenants(propertyId: propertyId) {
+            tenantPhones = Dictionary(uniqueKeysWithValues: tenants.map { ($0.id, $0.phone) })
+        }
+    }
+
+    private func sendWhatsApp(for record: RentRecord) {
+        let phone = tenantPhones[record.tenantId] ?? ""
+        let propertyName = AuthService.shared.propertyName.isEmpty
+            ? "Management" : AuthService.shared.propertyName
+        let message = "Dear \(record.tenantName), your rent of \(formatINR(record.amount)) for \(record.monthName) is overdue. Please pay at the earliest. - \(propertyName)"
+        let encoded = message.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let cleanPhone = phone.filter { $0.isNumber }
+
+        if cleanPhone.isEmpty {
+            noPhoneAlertName = record.tenantName
+            showNoPhoneAlert = true
+            return
+        }
+
+        if let url = URL(string: "whatsapp://send?phone=91\(cleanPhone)&text=\(encoded)") {
+            UIApplication.shared.open(url)
         }
     }
 
@@ -138,6 +232,7 @@ struct RentBoardView: View {
 
 struct RentRecordRow: View {
     let record: RentRecord
+    var whatsAppAction: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -168,7 +263,14 @@ struct RentRecordRow: View {
                     color: record.status.color)
             }
 
-            if record.status != .paid {
+            if let action = whatsAppAction {
+                Button(action: action) {
+                    Image(systemName: "message.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(Color(red: 0.07, green: 0.53, blue: 0.32))
+                }
+                .buttonStyle(.plain)
+            } else if record.status != .paid {
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundStyle(Color.textTertiary)
